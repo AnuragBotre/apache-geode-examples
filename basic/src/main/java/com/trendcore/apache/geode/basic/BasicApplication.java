@@ -17,7 +17,7 @@ public class BasicApplication {
 
         Region<String, Object> basicRegion = clientCache.<String, Object>createClientRegionFactory(ClientRegionShortcut.PROXY).create("basic");
 
-        basicRegion.create("fe", "iron");
+        basicRegion.put("fe", "iron");
         Object fe = basicRegion.get("fe");
 
         System.out.println("Value for iron is " + fe);
