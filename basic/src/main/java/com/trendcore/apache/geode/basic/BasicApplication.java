@@ -15,12 +15,18 @@ public class BasicApplication {
 
         ClientCache clientCache = clientCacheFactory.create();
 
-        Region<String, Object> basicRegion = clientCache.<String, Object>createClientRegionFactory(ClientRegionShortcut.PROXY).create("basic");
+        Region<String, Object> basicRegionLocal = clientCache.<String, Object>createClientRegionFactory(ClientRegionShortcut.LOCAL).create("basic_local");
+        Region<String, Object> basicRegion = clientCache.<String, Object>createClientRegionFactory(ClientRegionShortcut.LOCAL).create("basic");
 
         basicRegion.put("fe", "iron");
         Object fe = basicRegion.get("fe");
 
         System.out.println("Value for iron is " + fe);
+
+        basicRegionLocal.put("cl","chlorine");
+        Object cl = basicRegionLocal.get("cl");
+
+        System.out.println("Value for chlorine is " + cl);
     }
 
 }
