@@ -1,3 +1,9 @@
+http://learnmongodbthehardway.com/schema/shoppingcartreservation/
+- Learn MongoDB The Hard Way Schema design examples.
+
+https://github.com/spring-petclinic/spring-framework-petclinic
+- Spring Pet Clinic Web Example.
+
 Example CounterService Application using Spring Boot for Apache Geode & PCC demonstrating caching.
 - https://github.com/jxblum/counter-service
 
