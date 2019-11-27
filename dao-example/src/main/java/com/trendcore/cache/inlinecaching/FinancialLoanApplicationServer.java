@@ -4,6 +4,7 @@ import com.trendcore.cache.springboot.DaoCommandLineRunner;
 import org.apache.geode.cache.CacheLoader;
 import org.apache.geode.cache.CacheWriter;
 import org.apache.geode.cache.GemFireCache;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -74,8 +75,14 @@ public class FinancialLoanApplicationServer implements CommandLineRunner {
         return new DecisionManagementSystemWriter();
     }
 
+    @Autowired
+    private EligibilityService eligibilityService;
+
     @Override
     public void run(String... args) throws Exception {
         System.out.println("Run");
+        System.out.println(eligibilityService);
+
+        eligibilityService.getEligibilityCriteria(1);
     }
 }

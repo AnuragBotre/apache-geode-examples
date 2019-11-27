@@ -12,6 +12,7 @@ public class DecisionManagementSystemLoader implements CacheLoader<Object, Eligi
     @Override
     public EligibilityDecision load(LoaderHelper<Object, EligibilityDecision> helper) throws CacheLoaderException {
 
+        System.out.println("load");
         EligibilityDecision eligibilityDecision = Database.getInstance().getDatabaseMap().put(helper.getKey(), (EligibilityDecision) helper.getArgument());
 
         return eligibilityDecision;
