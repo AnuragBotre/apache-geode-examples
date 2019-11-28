@@ -80,8 +80,6 @@ public class FinancialLoanApplicationServer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        System.out.println("Run");
-        System.out.println(" Eligibility Service" + eligibilityService);
 
         eligibilityService.getEligibilityCriteria(1);
 

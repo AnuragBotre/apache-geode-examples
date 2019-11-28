@@ -9,17 +9,17 @@ public class DecisionManagementSystemWriter implements CacheWriter {
 
     @Override
     public void beforeUpdate(EntryEvent event) throws CacheWriterException {
-        System.out.println("beforeUpdate :- ");
+        System.out.println("DecisionManagementSystemWriter::beforeUpdate :- ");
     }
 
     @Override
     public void beforeCreate(EntryEvent event) throws CacheWriterException {
-        System.out.println("beforeCreate :- ");
+        System.out.println("DecisionManagementSystemWriter::beforeCreate :- ");
     }
 
     @Override
     public void beforeDestroy(EntryEvent event) throws CacheWriterException {
-        System.out.println("beforeDestroy :- ");
+        System.out.println("DecisionManagementSystemWriter::beforeDestroy :- ");
     }
 
     @Override
@@ -29,6 +29,6 @@ public class DecisionManagementSystemWriter implements CacheWriter {
 
     @Override
     public void beforeRegionClear(RegionEvent event) throws CacheWriterException {
-        System.out.println("beforeRegionClear :- ");
+        System.out.println("DecisionManagementSystemWriter::beforeRegionClear :- ");
     }
 }

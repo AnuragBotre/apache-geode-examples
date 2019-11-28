@@ -18,6 +18,6 @@ public class EligibilityService {
 
     @Cacheable("EligibilityDecisions")
     public void setEligibilityCriteria(EligibilityDecision eligibilityDecision) {
-        System.out.println("setEligibilityCriteria " +eligibilityDecision.getId());
+        System.out.println("EligibilityService::setEligibilityCriteria -> " +eligibilityDecision.getId());
     }
 }
