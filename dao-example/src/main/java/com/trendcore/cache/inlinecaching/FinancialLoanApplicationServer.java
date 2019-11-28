@@ -81,8 +81,14 @@ public class FinancialLoanApplicationServer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         System.out.println("Run");
-        System.out.println(eligibilityService);
+        System.out.println(" Eligibility Service" + eligibilityService);
 
         eligibilityService.getEligibilityCriteria(1);
+
+
+        EligibilityDecision eligibilityDecision = new EligibilityDecision();
+        eligibilityDecision.setId(11);
+        eligibilityDecision.setEligibilityDecisionKey("20");
+        eligibilityService.setEligibilityCriteria(eligibilityDecision);
     }
 }

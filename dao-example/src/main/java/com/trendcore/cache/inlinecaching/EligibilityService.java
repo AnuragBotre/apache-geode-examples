@@ -1,14 +1,23 @@
 package com.trendcore.cache.inlinecaching;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
 
-@Service
+@Repository
 public class EligibilityService {
 
 
-    public void getEligibilityCriteria(Integer id) {
-        System.out.println("id");
+    @Cacheable("EligibilityDecisions")
+    public EligibilityDecision getEligibilityCriteria(Integer id) {
+        System.out.println("getEligibilityCriteria");
+        EligibilityDecision eligibilityDecision = new EligibilityDecision();
+        eligibilityDecision.setId(100);
+        eligibilityDecision.setEligibilityDecisionKey("100");
+        return eligibilityDecision;
     }
 
+    @Cacheable("EligibilityDecisions")
+    public void setEligibilityCriteria(EligibilityDecision eligibilityDecision) {
+        System.out.println("setEligibilityCriteria " +eligibilityDecision.getId());
+    }
 }

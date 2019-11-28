@@ -12,7 +12,7 @@ public class Database {
         for (int i = 0; i < 10; i++) {
             EligibilityDecision e = new EligibilityDecision();
             e.setId(i);
-            e.setEligibilityDecisionKey(i);
+            e.setEligibilityDecisionKey(""+i);
             databaseMap.put(i, e);
         }
     }
