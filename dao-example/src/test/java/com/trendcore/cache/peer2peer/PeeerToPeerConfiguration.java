@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import java.util.Properties;
 import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
 
 public class PeeerToPeerConfiguration {
 
@@ -20,13 +21,15 @@ public class PeeerToPeerConfiguration {
 
         /*Thread t = new Thread(() -> {
             locatorLauncher.start();
+            locatorLauncher.waitOnLocator();
         });*/
 
-
-        //t.start();
+        /*t.start();*/
 
         locatorLauncher.start();
-        locatorLauncher.waitOnLocator();
+        //locatorLauncher.waitOnLocator();
+        Scanner scanner = new Scanner(System.in);
+        scanner.next();
     }
 
 
