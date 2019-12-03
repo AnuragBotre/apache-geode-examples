@@ -2,15 +2,20 @@ package com.trendcore.cache.peertopeer;
 
 import org.apache.geode.cache.Cache;
 import org.apache.geode.cache.CacheFactory;
-import org.apache.geode.cache.server.CacheServer;
 
-import java.util.List;
 import java.util.Properties;
-import java.util.Scanner;
 
 public class CacheServerOne {
 
     public static void main(String[] args) {
+
+        String file = CacheServerOne.class.getClassLoader().getResource("log4j2.xml").getFile();
+
+        System.out.println(file);
+
+        System.setProperty("logback.configurationFile",file);
+
+        CacheFeatures cacheFeatures = new CacheFeatures();
 
         Properties properties = new Properties();
         //properties.setProperty("locators", "localhost[13489]");
@@ -20,25 +25,8 @@ public class CacheServerOne {
 
         Cache cache = cacheFactory.create();
 
-        Scanner scanner = new Scanner(System.in);
 
-        boolean flag = true;
-        while (flag) {
-            int options = scanner.nextInt();
-
-            switch (options) {
-                case 1:
-                    System.out.println("Cache Servers");
-                    List<CacheServer> cacheServers = cache.getCacheServers();
-                    cacheServers.stream().forEach(System.out::println);
-                    break;
-                case 2:
-                    break;
-                case 0:
-                    flag = false;
-                    break;
-            }
-        }
+        cacheFeatures.utility(cache);
     }
 
 }

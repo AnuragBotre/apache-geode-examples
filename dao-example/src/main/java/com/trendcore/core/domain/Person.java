@@ -4,11 +4,12 @@ import com.trendcore.core.lang.DateTimeUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.gemfire.mapping.annotation.Region;
 
+import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
 
 @Region("People")
-public class Person implements Identifiable<Long> {
+public class Person implements Identifiable<Long> , Serializable {
 
     private Gender gender;
 
