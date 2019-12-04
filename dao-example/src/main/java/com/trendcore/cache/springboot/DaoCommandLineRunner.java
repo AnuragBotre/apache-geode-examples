@@ -97,5 +97,8 @@ public class DaoCommandLineRunner implements CommandLineRunner {
         Assert.isTrue(actualDoeFamily.size() == expectedDoeFamily.size(), String.format(
                 "Expected (%1$d); but was (%2$d); additional people include (%3$s)",
                 expectedDoeFamily.size(), actualDoeFamily.size(), actualDoeFamily.removeAll(expectedDoeFamily)));
+
+        Person person = createPerson("Anurag", "B");
+        personRepository.save(person);
     }
 }
