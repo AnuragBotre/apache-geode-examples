@@ -26,11 +26,12 @@ public class CacheFeatures {
             int options = scanner.nextInt();
 
             switch (options) {
-                case 1:
+                case 1: {
                     System.out.println("Cache Servers");
                     List<CacheServer> cacheServers = cache.getCacheServers();
                     cacheServers.stream().forEach(System.out::println);
                     break;
+                }
                 case 2: {
                     String firstName = scanner.next();
                     String lastName = scanner.next();
@@ -44,9 +45,10 @@ public class CacheFeatures {
                     System.out.println(person);
                 }
                 break;
-                case 0:
+                case 0: {
                     flag = false;
                     break;
+                }
             }
         }
     }

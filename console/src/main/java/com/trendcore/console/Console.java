@@ -1,14 +1,27 @@
 package com.trendcore.console;
 
+import com.trendcore.console.commands.Command;
+import com.trendcore.console.commands.PutCommand;
+
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.function.Supplier;
+
+import static com.trendcore.lang.DSLMethods.ifTrue;
+import static com.trendcore.lang.DSLMethods.ifPresentOrElse;
 
 public class Console {
 
     Map<String, Supplier<Command>> commandsMap = new HashMap<>();
+
+    /**
+     * Stores variable names and its value
+     */
+    Map<String, Object> context = new HashMap<>();
+
 
     public static void main(String[] args) {
 
@@ -42,26 +55,32 @@ public class Console {
 
     private boolean runQuery(String query) {
         String[] s = query.split(" ");
-        if (s.length > 1) {
-            String s1 = s[0];
-            Supplier<Command> commandsSupplier = commandsMap.get(s1);
-            System.out.println("Command :- " + s1);
-            if (commandsSupplier == null) {
-                System.out.println("Command not found.");
-            } else {
-                Command command = commandsSupplier.get();
-                for (int i = 1; i < s.length; i++) {
-                    String arg = s[i];
 
-                    bindArgument(command, arg);
-                }
-                command.execute();
-            }
-        }
+        ifTrue(s.length > 1, () -> {
+            String command = s[0];
+            ifPresentOrElse(Optional.of(commandsMap.get(command)),
+                    commandsSupplier -> {
+                        System.out.println("Command :- " + command);
+                        executeCommand(s, commandsSupplier);
+                    },
+                    () -> System.out.println("Command not found.")
+            );
+        });
+
         return false;
     }
 
-    Map<Class, Map<String, Field>> cacheFields = new HashMap<>();
+    private void executeCommand(String[] s, Supplier<Command> commandsSupplier) {
+        Command command = commandsSupplier.get();
+
+        String args = "";
+        for (int i = 1; i < s.length; i++) {
+            String arg = s[i];
+            args = args + arg;
+        }
+        command.execute(args, context);
+    }
+
 
     private void bindArgument(Command command, String arg) {
 
@@ -76,7 +95,7 @@ public class Console {
                 if (field.getName().equals(nameValue[0])) {
                     boolean accessible = field.isAccessible();
                     field.setAccessible(true);
-                    field.set(command,nameValue[1]);
+                    field.set(command, nameValue[1]);
                     field.setAccessible(accessible);
                 }
             }

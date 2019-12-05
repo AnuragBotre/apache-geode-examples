@@ -1,4 +1,6 @@
-package com.trendcore.console;
+package com.trendcore.console.commands;
+
+import java.util.Map;
 
 public class PutCommand implements Command {
 
@@ -7,7 +9,8 @@ public class PutCommand implements Command {
     private String lastname;
 
     @Override
-    public void execute() {
+    public void execute(String args, Map<String, Object> context) {
+
         System.out.println(firstname + " " + lastname);
     }
 }

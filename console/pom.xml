@@ -11,6 +11,14 @@
 
     <artifactId>console</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.oath.cyclops</groupId>
+            <artifactId>cyclops</artifactId>
+            <version>10.3.0</version>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
