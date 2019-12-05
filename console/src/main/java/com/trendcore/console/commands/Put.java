@@ -2,7 +2,7 @@ package com.trendcore.console.commands;
 
 import java.util.Map;
 
-public class PutCommand implements Command {
+public class Put implements Command {
 
     private String firstname;
 

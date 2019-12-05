@@ -1,7 +1,8 @@
 package com.trendcore.console;
 
 import com.trendcore.console.commands.Command;
-import com.trendcore.console.commands.PutCommand;
+import com.trendcore.console.commands.Let;
+import com.trendcore.console.commands.Put;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -26,7 +27,8 @@ public class Console {
     public static void main(String[] args) {
 
         Console console = new Console();
-        console.commandsMap.put("put", () -> new PutCommand());
+        console.commandsMap.put("put", () -> new Put());
+        console.commandsMap.put("let", () -> new Let());
 
         boolean isExit = false;
         Scanner scanner = new Scanner(System.in);
