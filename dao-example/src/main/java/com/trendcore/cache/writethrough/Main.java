@@ -39,20 +39,36 @@ public class Main {
 
         CacheTransactionManager cacheTransactionManager = cache.getCacheTransactionManager();
 
+        cacheTransactionManager.setWriter(event -> {
+            System.out.println("TransactionWriter::beforeCommit event is called.");
+            event.getEvents().stream().forEach(cacheEvent -> {
+                System.out.println("\t"+cacheEvent.getOperation() + " " + cacheEvent.getCallbackArgument());
+            });
+        });
+
         cacheTransactionManager.addListener(new TransactionListener() {
             @Override
             public void afterCommit(TransactionEvent event) {
                 System.out.println("After commit event is called." + event);
+                event.getEvents().stream().forEach(cacheEvent -> {
+                    System.out.println("\t"+cacheEvent.getOperation() + " " + cacheEvent.getCallbackArgument());
+                });
             }
 
             @Override
             public void afterFailedCommit(TransactionEvent event) {
                 System.out.println("After commit failed event is called." + event);
+                event.getEvents().stream().forEach(cacheEvent -> {
+                    System.out.println("\t"+cacheEvent.getOperation() + " " + cacheEvent.getCallbackArgument());
+                });
             }
 
             @Override
             public void afterRollback(TransactionEvent event) {
                 System.out.println("After rollback event is called." + event);
+                event.getEvents().stream().forEach(cacheEvent -> {
+                    System.out.println("\t"+cacheEvent.getOperation() + " " + cacheEvent.getCallbackArgument());
+                });
             }
         });
 
