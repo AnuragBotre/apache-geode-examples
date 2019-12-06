@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.Scanner;
 import java.util.function.Supplier;
 
-import static com.trendcore.lang.DSLMethods.ifTrue;
+import static com.trendcore.lang.DSLMethods.when;
 import static com.trendcore.lang.DSLMethods.ifPresentOrElse;
 
 public class Console {
@@ -58,7 +58,7 @@ public class Console {
     private boolean runQuery(String query) {
         String[] s = query.split(" ");
 
-        ifTrue(s.length > 1, () -> {
+        when(s.length > 1, () -> {
             String command = s[0];
             ifPresentOrElse(Optional.of(commandsMap.get(command)),
                     commandsSupplier -> {

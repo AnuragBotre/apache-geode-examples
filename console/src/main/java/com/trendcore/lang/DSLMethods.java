@@ -18,7 +18,7 @@ public class DSLMethods {
         }
     }
 
-    public static <T> void ifTrue(boolean expression, Runnable ifPresent) {
+    public static <T> void when(boolean expression, Runnable ifPresent) {
         if (expression) {
             ifPresent.run();
         }
