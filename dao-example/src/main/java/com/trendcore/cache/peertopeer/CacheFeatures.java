@@ -2,24 +2,31 @@ package com.trendcore.cache.peertopeer;
 
 import com.trendcore.core.domain.Person;
 import com.trendcore.core.lang.IdentifierSequence;
-import org.apache.geode.cache.Cache;
-import org.apache.geode.cache.Region;
-import org.apache.geode.cache.RegionFactory;
-import org.apache.geode.cache.RegionShortcut;
+import org.apache.geode.cache.*;
 import org.apache.geode.cache.server.CacheServer;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class CacheFeatures {
 
 
-    public void utility(Cache cache) {
+    private Cache cache;
+
+    private Region<String, Person> region;
+
+    public CacheFeatures(Cache cache) {
+        this.cache = cache;
+    }
+
+    public void utility() {
 
         Scanner scanner = new Scanner(System.in);
 
-        RegionFactory<String, Person> regionFactory = cache.createRegionFactory(RegionShortcut.REPLICATE_PROXY);
-        Region<String, Person> region = regionFactory.create("Person");
+        RegionFactory<String, Person> regionFactory = this.cache.createRegionFactory(RegionShortcut.REPLICATE);
+        region = regionFactory.create("Person");
 
         boolean flag = true;
         while (flag) {
@@ -45,12 +52,37 @@ public class CacheFeatures {
                     System.out.println(person);
                 }
                 break;
+                case 4:{
+                    //transactions
+                    try {
+                        executeTransactions();
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+                break;
                 case 0: {
                     flag = false;
                     break;
                 }
             }
         }
+    }
+
+    private void executeTransactions() {
+
+        Map<String, Person> transactionData = new HashMap();
+        int id = 100;
+        for(int i = 0 ; i < 100 ; i++) {
+            Person person = createPerson("Agent"+ (i + id), "");
+            transactionData.put(person.getFirstName(),person);
+        }
+
+        CacheTransactionManager cacheTransactionManager = cache.getCacheTransactionManager();
+        cacheTransactionManager.begin();
+        region.putAll(transactionData);
+        cacheTransactionManager.commit();
+
     }
 
     private Person createPerson(String firstname, String lastname) {
