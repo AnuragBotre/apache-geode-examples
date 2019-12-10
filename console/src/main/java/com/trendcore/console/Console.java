@@ -5,16 +5,10 @@ import com.trendcore.console.commands.Context;
 import com.trendcore.console.commands.Let;
 import com.trendcore.console.commands.Put;
 
-import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Scanner;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static com.trendcore.lang.DSLMethods.*;
-import static com.trendcore.lang.DSLMethods.when;
-import static com.trendcore.lang.DSLMethods.ifPresentOrElse;
 
 public class Console {
 
@@ -29,6 +23,38 @@ public class Console {
 
     private boolean exit;
 
+    public Console() {
+
+
+        commandsMap.put("showPreviousException", () ->
+                (args, context) ->
+                        notNull(previousException,
+                                e -> e.printStackTrace(),
+                                () -> System.out.println("No Exception present")
+                        )
+        );
+
+
+        commandsMap.put("exit", () -> new Command() {
+            @Override
+            public void execute(String args, Context context1) {
+                exit = true;
+            }
+
+            @Override
+            public String help() {
+                return "Exit from console";
+            }
+        });
+
+        commandsMap.put("commandsList", () ->
+                (args, context) ->
+                        commandsMap.forEach((s, commandSupplier) ->
+                                System.out.println(s + " " + commandSupplier.get().help())
+                        )
+        );
+
+    }
 
     public static void main(String[] args) {
 
@@ -41,25 +67,10 @@ public class Console {
 
     public void start() {
 
-        commandsMap.put("showPreviousException", () ->
-                (args, context) ->
-                        notNull(previousException,
-                                e -> e.printStackTrace(),
-                                () -> System.out.println("No Exception present")
-                        )
-        );
-
-        commandsMap.put("exit", () -> (args, context1) -> exit = true);
-
-        commandsMap.put("showCommands", () ->
-                (args, context) ->
-                        commandsMap.forEach((s, commandSupplier) ->
-                                System.out.println(s + " " + commandSupplier.get().help())
-                        )
-        );
 
         boolean isExit = false;
         Scanner scanner = new Scanner(System.in);
+        System.out.println("Type commandsList for available commands");
         while (!isExit) {
             System.out.print("console>");
 
@@ -84,19 +95,24 @@ public class Console {
     }
 
 
-    private boolean runQuery(String query) {
-        String[] s = query.split(" ");
+    boolean runQuery(String query) {
 
-        when(s.length >= 1, () -> {
-            String command = s[0];
-            ifPresentOrElse(Optional.of(commandsMap.get(command)),
-                    commandsSupplier -> {
-                        System.out.println("Command :- " + command);
-                        executeCommand(s, commandsSupplier);
-                    },
-                    () -> System.out.println("Command not found.")
-            );
-        });
+        ifPresentOrElse(Arrays.stream(query.split(";")).findFirst(),refinedQuery -> {
+            String[] s = refinedQuery.split(" ");
+
+            when(s.length >= 1, () -> {
+                String command = s[0];
+                ifPresentOrElse(Optional.ofNullable(commandsMap.get(command)),
+                        commandsSupplier -> {
+                            System.out.println("Command :- " + command);
+                            executeCommand(s, commandsSupplier);
+                        },
+                        () -> System.out.println("Command not found.")
+                );
+            });
+        },() -> System.out.println("Command not found."));
+
+
 
         return exit;
     }
@@ -113,7 +129,6 @@ public class Console {
                     args.append(arg);
                 }
             });
-
 
             command.execute(args.toString(), context);
         } catch (Exception e) {
