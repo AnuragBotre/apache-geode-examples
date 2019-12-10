@@ -1,29 +1,31 @@
 package com.trendcore.console.parsers;
 
-import com.trendcore.console.commands.Command;
-
 import java.lang.reflect.Field;
+import java.util.Arrays;
 
 public class ArgumentParser {
 
-    public void bindArgument(Command command, String arg) {
+    public void bindArgument(Object object, String args) {
 
-
-        try {
+        Arrays.stream(args.split(" ")).forEach(arg -> {
 
             String[] nameValue = arg.split("=");
+            Field[] declaredFields = object.getClass().getDeclaredFields();
 
-            Field[] declaredFields = command.getClass().getDeclaredFields();
+            Arrays.stream(declaredFields)
+                    .filter(field -> field.getName().equals(nameValue[0]))
+                    .forEach(field -> setValue(object, nameValue[1], field));
+        });
 
-            for (Field field : declaredFields) {
-                if (field.getName().equals(nameValue[0])) {
-                    boolean accessible = field.isAccessible();
-                    field.setAccessible(true);
-                    field.set(command, nameValue[1]);
-                    field.setAccessible(accessible);
-                }
-            }
 
+    }
+
+    private void setValue(Object object, String value, Field field) {
+        try {
+            boolean accessible = field.isAccessible();
+            field.setAccessible(true);
+            field.set(object, value);
+            field.setAccessible(accessible);
         } catch (IllegalAccessException e) {
 
         }

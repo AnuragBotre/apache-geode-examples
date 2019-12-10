@@ -7,6 +7,7 @@ import com.trendcore.console.commands.Put;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static com.trendcore.lang.DSLMethods.*;
 
@@ -97,6 +98,8 @@ public class Console {
 
     boolean runQuery(String query) {
 
+        Runnable printCommandNotFound = () -> System.out.println("Command not found.");
+
         ifPresentOrElse(Arrays.stream(query.split(";")).findFirst(),refinedQuery -> {
             String[] s = refinedQuery.split(" ");
 
@@ -107,12 +110,9 @@ public class Console {
                             System.out.println("Command :- " + command);
                             executeCommand(s, commandsSupplier);
                         },
-                        () -> System.out.println("Command not found.")
-                );
+                        printCommandNotFound);
             });
-        },() -> System.out.println("Command not found."));
-
-
+        },printCommandNotFound);
 
         return exit;
     }
@@ -122,15 +122,8 @@ public class Console {
         try {
             Command command = commandsSupplier.get();
 
-            StringBuilder args = new StringBuilder();
-            when(s.length > 1 , () -> {
-                for (int i = 1; i < s.length; i++) {
-                    String arg = s[i];
-                    args.append(arg);
-                }
-            });
-
-            command.execute(args.toString(), context);
+            String args = Arrays.stream(s).skip(1).collect(Collectors.joining(" "));
+            command.execute(args, context);
         } catch (Exception e) {
             previousException = e;
             System.out.println("Error occurred while invoking command. Type 'showPreviousException' for showing exception");
