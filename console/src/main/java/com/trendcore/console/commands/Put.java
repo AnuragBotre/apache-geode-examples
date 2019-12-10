@@ -9,8 +9,7 @@ public class Put implements Command {
     private String lastname;
 
     @Override
-    public void execute(String args, Map<String, Object> context) {
+    public void execute(String args, Context context) {
 
-        System.out.println(firstname + " " + lastname);
     }
 }

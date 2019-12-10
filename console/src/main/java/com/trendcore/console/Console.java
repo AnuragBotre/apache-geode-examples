@@ -1,6 +1,7 @@
 package com.trendcore.console;
 
 import com.trendcore.console.commands.Command;
+import com.trendcore.console.commands.Context;
 import com.trendcore.console.commands.Let;
 import com.trendcore.console.commands.Put;
 
@@ -11,6 +12,7 @@ import java.util.Optional;
 import java.util.Scanner;
 import java.util.function.Supplier;
 
+import static com.trendcore.lang.DSLMethods.*;
 import static com.trendcore.lang.DSLMethods.when;
 import static com.trendcore.lang.DSLMethods.ifPresentOrElse;
 
@@ -21,7 +23,11 @@ public class Console {
     /**
      * Stores variable names and its value
      */
-    Map<String, Object> context = new HashMap<>();
+    Context context = new Context();
+
+    Exception previousException;
+
+    private boolean exit;
 
 
     public static void main(String[] args) {
@@ -29,6 +35,28 @@ public class Console {
         Console console = new Console();
         console.commandsMap.put("put", () -> new Put());
         console.commandsMap.put("let", () -> new Let());
+
+        console.start();
+    }
+
+    public void start() {
+
+        commandsMap.put("showPreviousException", () ->
+                (args, context) ->
+                        notNull(previousException,
+                                e -> e.printStackTrace(),
+                                () -> System.out.println("No Exception present")
+                        )
+        );
+
+        commandsMap.put("exit", () -> (args, context1) -> exit = true);
+
+        commandsMap.put("showCommands", () ->
+                (args, context) ->
+                        commandsMap.forEach((s, commandSupplier) ->
+                                System.out.println(s + " " + commandSupplier.get().help())
+                        )
+        );
 
         boolean isExit = false;
         Scanner scanner = new Scanner(System.in);
@@ -51,14 +79,15 @@ public class Console {
 
             String query = queryBuilder.toString();
             System.out.println(query);
-            isExit = console.runQuery(query);
+            isExit = runQuery(query);
         }
     }
+
 
     private boolean runQuery(String query) {
         String[] s = query.split(" ");
 
-        when(s.length > 1, () -> {
+        when(s.length >= 1, () -> {
             String command = s[0];
             ifPresentOrElse(Optional.of(commandsMap.get(command)),
                     commandsSupplier -> {
@@ -69,43 +98,36 @@ public class Console {
             );
         });
 
-        return false;
+        return exit;
     }
 
     private void executeCommand(String[] s, Supplier<Command> commandsSupplier) {
-        Command command = commandsSupplier.get();
-
-        String args = "";
-        for (int i = 1; i < s.length; i++) {
-            String arg = s[i];
-            args = args + arg;
-        }
-        command.execute(args, context);
-    }
-
-
-    private void bindArgument(Command command, String arg) {
-
 
         try {
+            Command command = commandsSupplier.get();
 
-            String[] nameValue = arg.split("=");
-
-            Field[] declaredFields = command.getClass().getDeclaredFields();
-
-            for (Field field : declaredFields) {
-                if (field.getName().equals(nameValue[0])) {
-                    boolean accessible = field.isAccessible();
-                    field.setAccessible(true);
-                    field.set(command, nameValue[1]);
-                    field.setAccessible(accessible);
+            StringBuilder args = new StringBuilder();
+            when(s.length > 1 , () -> {
+                for (int i = 1; i < s.length; i++) {
+                    String arg = s[i];
+                    args.append(arg);
                 }
-            }
+            });
 
-        } catch (IllegalAccessException e) {
 
+            command.execute(args.toString(), context);
+        } catch (Exception e) {
+            previousException = e;
+            System.out.println("Error occurred while invoking command. Type 'showPreviousException' for showing exception");
         }
     }
 
 
+
+
+    public void addCommand(String commandName, Supplier<Command> commandSupplier) {
+        ifPresentOrElse(commandsMap.containsKey(commandName),
+                () -> System.out.println("Command name already present."),
+                () -> commandsMap.put(commandName, commandSupplier));
+    }
 }

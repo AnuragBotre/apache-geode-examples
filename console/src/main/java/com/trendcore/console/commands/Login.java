@@ -1,11 +1,9 @@
 package com.trendcore.console.commands;
 
-import java.util.Map;
-
 public class Login implements Command {
 
     @Override
-    public void execute(String args, Map<String, Object> context) {
+    public void execute(String args, Context context) {
 
     }
 }
