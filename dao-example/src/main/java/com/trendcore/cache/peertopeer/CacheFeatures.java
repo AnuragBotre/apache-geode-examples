@@ -26,7 +26,9 @@ public class CacheFeatures {
 
     public void cacheFeaturesWithConsoleApp() {
 
-        RegionFactory<String, Person> regionFactory = this.cache.createRegionFactory(RegionShortcut.REPLICATE);
+        RegionFactory<String, Person> regionFactory = this.cache.createRegionFactory(RegionShortcut.PARTITION);
+        //regionFactory.setEvictionAttributes(EvictionAttributes.createLRUEntryAttributes(200));
+
         region = regionFactory.create("Person");
 
         Console console = new Console();
@@ -95,14 +97,18 @@ public class CacheFeatures {
 
             Command command = new Command() {
 
+                String start;
+
                 @Override
                 public void execute(String args, Context context) {
-                    executeTransactions();
+                    ArgumentParser argumentParser = new ArgumentParser();
+                    argumentParser.bindArgument(this,args);
+                    executeTransactions(start);
                 }
 
                 @Override
                 public String help() {
-                    return "Execute Transaction on Cache. Ex -> executeTransaction";
+                    return "Execute Transaction on Cache. Ex -> executeTransaction start=100";
                 }
             };
 
@@ -128,10 +134,10 @@ public class CacheFeatures {
         cacheServers.stream().forEach(System.out::println);
     }
 
-    private void executeTransactions() {
+    private void executeTransactions(String start) {
 
         Map<String, Person> transactionData = new HashMap();
-        int id = 100;
+        int id = Integer.parseInt(start);
         for (int i = 0; i < 100; i++) {
             Person person = createPerson("Agent" + (i + id), "");
             transactionData.put(person.getFirstName(), person);
