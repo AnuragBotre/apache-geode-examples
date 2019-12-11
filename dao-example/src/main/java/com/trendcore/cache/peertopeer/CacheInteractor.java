@@ -13,23 +13,32 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CacheFeatures {
+public class CacheInteractor {
 
 
     private Cache cache;
 
     private Region<String, Person> region;
 
-    public CacheFeatures(Cache cache) {
+    public CacheInteractor(Cache cache) {
         this.cache = cache;
     }
 
-    public void cacheFeaturesWithConsoleApp() {
+    public void cacheInteractorWithConsoleApp() {
 
         RegionFactory<String, Person> regionFactory = this.cache.createRegionFactory(RegionShortcut.PARTITION);
         //regionFactory.setEvictionAttributes(EvictionAttributes.createLRUEntryAttributes(200));
 
-        region = regionFactory.create("Person");
+        /**
+         * In case of Partition region partition resolver is required for bulk insert in case of transaction.
+         */
+        PartitionResolver resolver = new StandardPartitionResolver();
+        PartitionAttributes attrs =
+                new PartitionAttributesFactory()
+                        .setPartitionResolver(resolver).create();
+
+
+        region = regionFactory.setPartitionAttributes(attrs).create("Person");
 
         Console console = new Console();
 
