@@ -110,47 +110,6 @@ public class CacheFeatures {
         });
 
         console.start();
-
-
-        /*boolean flag = true;
-        while (flag) {
-            int options = scanner.nextInt();
-
-            switch (options) {
-                case 1: {
-                    System.out.println("Cache Servers");
-                    List<CacheServer> cacheServers = cache.getCacheServers();
-                    cacheServers.stream().forEach(System.out::println);
-                    break;
-                }
-                case 2: {
-                    String firstName = scanner.next();
-                    String lastName = scanner.next();
-                    Person person = createPerson(firstName, lastName);
-                    region.put(person.getFirstName(), person);
-                }
-                break;
-                case 3: {
-                    String firstName = scanner.next();
-                    Person person = region.get(firstName);
-                    System.out.println(person);
-                }
-                break;
-                case 4:{
-                    //transactions
-                    try {
-                        executeTransactions();
-                    }catch (Exception e){
-                        e.printStackTrace();
-                    }
-                }
-                break;
-                case 0: {
-                    flag = false;
-                    break;
-                }
-            }
-        }*/
     }
 
     private void showPersonRecord(String firstName) {
