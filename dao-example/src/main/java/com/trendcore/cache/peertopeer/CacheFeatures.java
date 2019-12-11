@@ -24,7 +24,7 @@ public class CacheFeatures {
         this.cache = cache;
     }
 
-    public void utility() {
+    public void cacheFeaturesWithConsoleApp() {
 
         RegionFactory<String, Person> regionFactory = this.cache.createRegionFactory(RegionShortcut.REPLICATE);
         region = regionFactory.create("Person");

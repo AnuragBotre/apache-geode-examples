@@ -25,7 +25,7 @@ public class CacheServerTwo {
         Cache cache = cacheFactory.create();
 
         CacheFeatures cacheFeatures = new CacheFeatures(cache);
-        cacheFeatures.utility();
+        cacheFeatures.cacheFeaturesWithConsoleApp();
 
     }
 
