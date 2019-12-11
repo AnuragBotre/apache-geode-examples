@@ -102,7 +102,7 @@ public class CacheFeatures {
 
                 @Override
                 public String help() {
-                    return "Execute Transaction on Cache. \r\n executeTransaction";
+                    return "Execute Transaction on Cache. Ex -> executeTransaction";
                 }
             };
 
