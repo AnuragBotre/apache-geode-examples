@@ -1,13 +1,13 @@
-package com.trendcore.cache.peertopeer;
+package com.trendcore.cache.peertopeer2;
 
+import com.trendcore.cache.peertopeer.CacheInteractor;
+import com.trendcore.cache.peertopeer.CacheServerOne;
 import org.apache.geode.cache.Cache;
 import org.apache.geode.cache.CacheFactory;
 
 import java.util.Properties;
 
-import static org.apache.geode.distributed.ConfigurationProperties.NAME;
-
-public class CacheServerOne {
+public class Client {
 
     public static void main(String[] args) {
 
@@ -19,11 +19,9 @@ public class CacheServerOne {
 
 
         Properties properties = new Properties();
-        properties.setProperty("locators", "localhost[13489]");
+        properties.setProperty("locators", "localhost[10334]");
         properties.setProperty("mcast-address", "224.0.0.0");
         properties.setProperty("mcast-port", "0");
-        properties.setProperty(NAME, "cacheServer1");
-
         CacheFactory cacheFactory = new CacheFactory(properties);
 
         Cache cache = cacheFactory.create();

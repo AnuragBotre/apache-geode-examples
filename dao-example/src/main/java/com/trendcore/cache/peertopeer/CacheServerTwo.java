@@ -2,8 +2,11 @@ package com.trendcore.cache.peertopeer;
 
 import org.apache.geode.cache.Cache;
 import org.apache.geode.cache.CacheFactory;
+import org.apache.geode.distributed.ConfigurationProperties;
 
 import java.util.Properties;
+
+import static org.apache.geode.distributed.ConfigurationProperties.NAME;
 
 public class CacheServerTwo {
 
@@ -19,6 +22,7 @@ public class CacheServerTwo {
         properties.setProperty("locators", "localhost[13489]");
         properties.setProperty("mcast-address", "224.0.0.0");
         properties.setProperty("mcast-port", "0");
+        properties.setProperty(NAME, "cacheServer2");
 
         CacheFactory cacheFactory = new CacheFactory(properties);
 

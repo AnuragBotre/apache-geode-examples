@@ -8,10 +8,13 @@ import com.trendcore.core.domain.Person;
 import com.trendcore.core.lang.IdentifierSequence;
 import org.apache.geode.cache.*;
 import org.apache.geode.cache.server.CacheServer;
+import org.apache.geode.distributed.DistributedMember;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
 
 public class CacheInteractor {
 
@@ -27,18 +30,20 @@ public class CacheInteractor {
     public void cacheInteractorWithConsoleApp() {
 
         RegionFactory<String, Person> regionFactory = this.cache.createRegionFactory(RegionShortcut.PARTITION);
-        //regionFactory.setEvictionAttributes(EvictionAttributes.createLRUEntryAttributes(200));
 
         /**
          * In case of Partition region partition resolver is required for bulk insert in case of transaction.
          */
         PartitionResolver resolver = new StandardPartitionResolver();
-        PartitionAttributes attrs =
-                new PartitionAttributesFactory()
-                        .setPartitionResolver(resolver).create();
 
+        PartitionAttributesFactory partitionAttributesFactory = new PartitionAttributesFactory();
+        //partitionAttributesFactory.setRedundantCopies(2);
+        partitionAttributesFactory.setPartitionResolver(resolver);
+        PartitionAttributes partitionAttributes = partitionAttributesFactory.create();
 
-        region = regionFactory.setPartitionAttributes(attrs).create("Person");
+        //regionFactory.setEvictionAttributes(EvictionAttributes.createLRUEntryAttributes(200));
+
+        region = regionFactory.setPartitionAttributes(partitionAttributes).create("Person");
 
         Console console = new Console();
 
@@ -63,12 +68,13 @@ public class CacheInteractor {
 
             Command command = new Command() {
 
-                String firtname,lastname;
+                String firtname, lastname;
+
                 @Override
                 public void execute(String args, Context context) {
                     ArgumentParser argumentParser = new ArgumentParser();
-                    argumentParser.bindArgument(this,args);
-                    insertPersonRecord(firtname,lastname);
+                    argumentParser.bindArgument(this, args);
+                    insertPersonRecord(firtname, lastname);
                 }
 
                 @Override
@@ -89,7 +95,7 @@ public class CacheInteractor {
                 @Override
                 public void execute(String args, Context context) {
                     ArgumentParser argumentParser = new ArgumentParser();
-                    argumentParser.bindArgument(this,args);
+                    argumentParser.bindArgument(this, args);
                     showPersonRecord(firstname);
                 }
 
@@ -111,7 +117,7 @@ public class CacheInteractor {
                 @Override
                 public void execute(String args, Context context) {
                     ArgumentParser argumentParser = new ArgumentParser();
-                    argumentParser.bindArgument(this,args);
+                    argumentParser.bindArgument(this, args);
                     executeTransactions(start);
                 }
 
@@ -123,6 +129,28 @@ public class CacheInteractor {
 
             return command;
         });
+
+        console.addCommand("showDistributedMembers", () -> {
+            Command command = new Command() {
+                @Override
+                public void execute(String args, Context context) {
+                    cache.getDistributedSystem().
+                            getAllOtherMembers().
+                            forEach(
+                                    distributedMember -> {
+                                        System.out.println(distributedMember.getId() + " --- " + distributedMember.getName() + " --- " + cache.isServer());
+                                    }
+                            );
+                }
+
+                @Override
+                public String help() {
+                    return "showDistributedMembers;";
+                }
+            };
+            return command;
+        });
+
 
         console.start();
     }
