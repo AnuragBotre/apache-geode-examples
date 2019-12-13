@@ -7,16 +7,19 @@ import com.trendcore.console.parsers.ArgumentParser;
 import com.trendcore.core.domain.Person;
 import com.trendcore.core.lang.IdentifierSequence;
 import org.apache.geode.cache.*;
+import org.apache.geode.cache.control.RebalanceFactory;
+import org.apache.geode.cache.control.RebalanceOperation;
 import org.apache.geode.cache.partition.PartitionRegionHelper;
 import org.apache.geode.cache.server.CacheServer;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static com.trendcore.lang.DSLMethods.*;
 
 public class CacheInteractor {
 
 
+    public static final String PERSON_REGION = "Person";
     private Cache cache;
 
     private Region<String, Person> region;
@@ -41,7 +44,7 @@ public class CacheInteractor {
 
         //regionFactory.setEvictionAttributes(EvictionAttributes.createLRUEntryAttributes(200));
 
-        region = regionFactory.setPartitionAttributes(partitionAttributes).create("Person");
+        region = regionFactory.setPartitionAttributes(partitionAttributes).create(PERSON_REGION);
 
         Console console = new Console();
 
@@ -159,8 +162,70 @@ public class CacheInteractor {
             return command;
         });
 
+        console.addCommand("rebalance" , () -> {
+            Command command = new Command() {
+                @Override
+                public void execute(String args, Context context) {
+
+                    Runnable performRebalanceOperation = () -> {
+                        RebalanceOperation newRebalanceOperation = performRebalanceOperation();
+                        context.setValue("rebalanceOperation",newRebalanceOperation);
+                    };
+
+                    RebalanceOperation r = context.getValue("rebalanceOperation", RebalanceOperation.class);
+                    ifPresentOrElse(Optional.ofNullable(r),
+                            rebalanceOperation -> isTrue(rebalanceOperation.isDone(),
+                                    performRebalanceOperation,
+                                    () -> System.out.println("Previous rebalance Operation is not completed.")
+                            ),
+                            () -> performRebalanceOperation.run()
+                    );
+                }
+
+                @Override
+                public String help() {
+                    return "rebalance;";
+                }
+            };
+            return command;
+        });
+
+
+        console.addCommand("isRebalanceOperationIsRunning", () -> {
+            Command command = new Command() {
+                @Override
+                public void execute(String args, Context context) {
+                    notNull(context.getValue("rebalanceOperation",RebalanceOperation.class),
+                            rebalanceOperation -> {
+                                try {
+                                    System.out.println("Rebalance Operation Status :- " + rebalanceOperation.getResults().toString() + " " + rebalanceOperation.isDone());
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                    );
+                }
+
+                @Override
+                public String help() {
+                    return "isRebalanceOperationIsRunning;";
+                }
+            };
+            return command;
+        });
+
 
         console.start();
+    }
+
+    private RebalanceOperation performRebalanceOperation() {
+        Set<String> regions = new HashSet<>();
+        regions.add("Person");
+        RebalanceFactory rebalanceFactory = cache.getResourceManager()
+                .createRebalanceFactory()
+                .includeRegions(regions);
+
+        return rebalanceFactory.start();
     }
 
     private void printDistributedMembers() {

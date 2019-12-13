@@ -39,6 +39,10 @@ public class DSLMethods {
         }
     }
 
+    public static <T> void isTrue(boolean expression, Runnable ifPresent,Runnable orElse) {
+        ifPresentOrElse(expression,ifPresent,orElse);
+    }
+
     public static <T> void notNull(T t, Consumer<T> consumer, Runnable runnable) {
         if (t != null) {
             consumer.accept(t);
