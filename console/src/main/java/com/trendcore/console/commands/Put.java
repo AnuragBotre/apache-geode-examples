@@ -9,7 +9,7 @@ public class Put implements Command {
     private String lastname;
 
     @Override
-    public void execute(String args, Context context) {
-
+    public Result execute(String args, Context context) {
+        return null;
     }
 }

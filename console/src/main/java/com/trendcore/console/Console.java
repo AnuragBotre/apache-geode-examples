@@ -1,14 +1,11 @@
 package com.trendcore.console;
 
-import com.trendcore.console.commands.Command;
-import com.trendcore.console.commands.Context;
-import com.trendcore.console.commands.Let;
-import com.trendcore.console.commands.Put;
-import com.trendcore.lang.DSLMethods;
+import com.trendcore.console.commands.*;
 
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.trendcore.lang.DSLMethods.*;
 
@@ -24,24 +21,27 @@ public class Console {
     Exception previousException;
 
     private boolean exit;
-    private TableGenerator tableGenerator = new TableGenerator();
 
     public Console() {
 
 
         commandsMap.put("showPreviousException", () ->
-                (args, context) ->
-                        notNull(previousException,
-                                e -> e.printStackTrace(),
-                                () -> System.out.println("No Exception present")
-                        )
+                (args, context) -> {
+                    final Result[] r = {null};
+                    notNull(previousException,
+                            e -> r[0] = new StackTraceResult(e),
+                            () -> r[0] = new SimpleResult("No Exception present")
+                    );
+                    return r[0];
+                }
         );
 
 
         commandsMap.put("exit", () -> new Command() {
             @Override
-            public void execute(String args, Context context1) {
+            public Result execute(String args, Context context1) {
                 exit = true;
+                return new SimpleResult("Exiting From console.");
             }
 
             @Override
@@ -52,14 +52,14 @@ public class Console {
 
         commandsMap.put("commandsList", () ->
                 (args, context) -> {
-                    List<String> headers = Arrays.asList("Command Name", "Help");
 
-                    List<List<String>> collect = commandsMap.entrySet()
-                                        .stream()
-                                        .map(entry -> Arrays.asList(entry.getKey(), entry.getValue().get().help()))
-                                        .collect(Collectors.toList());
+                    Stream<List<String>> listStream = commandsMap.entrySet()
+                            .stream()
+                            .map(entry -> Arrays.asList(entry.getKey(), entry.getValue().get().help()));
 
-                    System.out.println(tableGenerator.generateTable(headers, collect));
+                    IterableResult iterableResult = new IterableResult();
+                    iterableResult.columns("Command Name", "Help").data(listStream);
+                    return iterableResult;
                 }
 
 
@@ -118,7 +118,8 @@ public class Console {
                 ifPresentOrElse(Optional.ofNullable(commandsMap.get(command)),
                         commandsSupplier -> {
                             System.out.println("Command :- " + command);
-                            executeCommand(s, commandsSupplier);
+                            Result result = executeCommand(s, commandsSupplier);
+                            result.showResult();
                         },
                         printCommandNotFound);
             });
@@ -127,16 +128,16 @@ public class Console {
         return exit;
     }
 
-    private void executeCommand(String[] s, Supplier<Command> commandsSupplier) {
+    private Result executeCommand(String[] s, Supplier<Command> commandsSupplier) {
 
         try {
             Command command = commandsSupplier.get();
 
             String args = Arrays.stream(s).skip(1).collect(Collectors.joining(" "));
-            command.execute(args, context);
+            return command.execute(args, context);
         } catch (Exception e) {
             previousException = e;
-            System.out.println("Error occurred while invoking command. Type 'showPreviousException' for showing exception");
+            return new SimpleResult("Error occurred while invoking command. Type 'showPreviousException' for showing exception");
         }
     }
 

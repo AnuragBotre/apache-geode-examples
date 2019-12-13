@@ -2,6 +2,7 @@ package com.trendcore.console.parsers;
 
 import com.trendcore.console.commands.Command;
 import com.trendcore.console.commands.Context;
+import com.trendcore.console.commands.Result;
 import org.junit.Test;
 import org.testng.Assert;
 
@@ -22,10 +23,11 @@ public class ArgumentParserTest {
             String lastname;
 
             @Override
-            public void execute(String args, Context context) {
+            public Result execute(String args, Context context) {
                 System.out.println(firstname + " " + lastname);
                 holder[0] = firstname;
                 holder[1] = lastname;
+                return null;
             }
         };
 

@@ -28,8 +28,8 @@ public class CacheServerOne {
 
         Cache cache = cacheFactory.create();
 
-        CacheInteractor cacheFeatures = new CacheInteractor(cache);
-        cacheFeatures.cacheInteractorWithConsoleApp();
+        CacheInteractor cacheInteractor = new CacheInteractor(cache);
+        cacheInteractor.cacheInteractorWithConsoleApp();
     }
 
 }

@@ -1,8 +1,7 @@
 package com.trendcore.cache.peertopeer;
 
 import com.trendcore.console.Console;
-import com.trendcore.console.commands.Command;
-import com.trendcore.console.commands.Context;
+import com.trendcore.console.commands.*;
 import com.trendcore.console.parsers.ArgumentParser;
 import com.trendcore.core.domain.Person;
 import com.trendcore.core.lang.IdentifierSequence;
@@ -11,8 +10,10 @@ import org.apache.geode.cache.control.RebalanceFactory;
 import org.apache.geode.cache.control.RebalanceOperation;
 import org.apache.geode.cache.partition.PartitionRegionHelper;
 import org.apache.geode.cache.server.CacheServer;
+import org.apache.geode.distributed.DistributedMember;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 import static com.trendcore.lang.DSLMethods.*;
 
@@ -23,6 +24,10 @@ public class CacheInteractor {
     private Cache cache;
 
     private Region<String, Person> region;
+
+    class ResultHolder {
+        Result result;
+    }
 
     public CacheInteractor(Cache cache) {
         this.cache = cache;
@@ -52,8 +57,13 @@ public class CacheInteractor {
 
             Command command = new Command() {
                 @Override
-                public void execute(String args, Context context) {
-                    printCacheServerList();
+                public Result execute(String args, Context context) {
+                    Stream<CacheServer> cacheServersStream = getCacheServersStream();
+
+                    Stream<List<String>> listStream = cacheServersStream.map(cacheServer ->
+                            Arrays.asList(cacheServer.toString()));
+
+                    return iteratorableResults(listStream, "CacheServer");
                 }
 
                 @Override
@@ -72,10 +82,11 @@ public class CacheInteractor {
                 String firtname, lastname;
 
                 @Override
-                public void execute(String args, Context context) {
+                public Result execute(String args, Context context) {
                     ArgumentParser argumentParser = new ArgumentParser();
                     argumentParser.bindArgument(this, args);
                     insertPersonRecord(firtname, lastname);
+                    return new SimpleResult("Record inserted successfully.");
                 }
 
                 @Override
@@ -94,10 +105,17 @@ public class CacheInteractor {
                 String firstname;
 
                 @Override
-                public void execute(String args, Context context) {
+                public Result execute(String args, Context context) {
                     ArgumentParser argumentParser = new ArgumentParser();
                     argumentParser.bindArgument(this, args);
-                    showPersonRecord(firstname);
+                    Person personRecord = getPersonRecord(firstname);
+
+                    Stream<List<String>> listStream = Arrays.asList(personRecord)
+                            .stream()
+                            .filter(person -> person != null)
+                            .map(person -> Arrays.asList(person.toString()));
+
+                    return iteratorableResults(listStream, "Firstname", "Person");
                 }
 
                 @Override
@@ -116,10 +134,11 @@ public class CacheInteractor {
                 String start;
 
                 @Override
-                public void execute(String args, Context context) {
+                public Result execute(String args, Context context) {
                     ArgumentParser argumentParser = new ArgumentParser();
                     argumentParser.bindArgument(this, args);
                     executeTransactions(start);
+                    return new SimpleResult("Transaction executed successfully. !!!");
                 }
 
                 @Override
@@ -134,8 +153,13 @@ public class CacheInteractor {
         console.addCommand("showDistributedMembers", () -> {
             Command command = new Command() {
                 @Override
-                public void execute(String args, Context context) {
-                    printDistributedMembers();
+                public Result execute(String args, Context context) {
+                    Stream<DistributedMember> distributedMembers = getDistributedMembers();
+
+                    return iteratorableResults(
+                            distributedMembers.map(distributedMember ->
+                                    Arrays.asList(distributedMember.getId(), distributedMember.getName())),
+                            "Id", "Name");
                 }
 
                 @Override
@@ -146,12 +170,19 @@ public class CacheInteractor {
             return command;
         });
 
-        console.addCommand("showDataForThisMember" , () -> {
+        console.addCommand("showDataForThisMember", () -> {
             Command command = new Command() {
                 @Override
-                public void execute(String args, Context context) {
+                public Result execute(String args, Context context) {
                     Region<String, Person> localData = PartitionRegionHelper.getLocalData(region);
-                    localData.values().stream().forEach(System.out::println);
+
+                    return iteratorableResults(localData.values()
+                                    .stream()
+                                    .map(p ->
+                                            Arrays.asList(p.getFirstName(),
+                                                    p.getLastName(),
+                                                    p.toString()))
+                            , "Firstname", "Lastname", "Object As String");
                 }
 
                 @Override
@@ -162,24 +193,34 @@ public class CacheInteractor {
             return command;
         });
 
-        console.addCommand("rebalance" , () -> {
+        console.addCommand("rebalance", () -> {
             Command command = new Command() {
                 @Override
-                public void execute(String args, Context context) {
+                public Result execute(String args, Context context) {
+
+
+                    ResultHolder resultHolder = new ResultHolder();
+
+                    //TODO refactor this -> modifying global
 
                     Runnable performRebalanceOperation = () -> {
                         RebalanceOperation newRebalanceOperation = performRebalanceOperation();
-                        context.setValue("rebalanceOperation",newRebalanceOperation);
+                        context.setValue("rebalanceOperation", newRebalanceOperation);
+                        resultHolder.result = new SimpleResult("Rebalance Operation initiated. !!!");
                     };
 
                     RebalanceOperation r = context.getValue("rebalanceOperation", RebalanceOperation.class);
                     ifPresentOrElse(Optional.ofNullable(r),
                             rebalanceOperation -> isTrue(rebalanceOperation.isDone(),
                                     performRebalanceOperation,
-                                    () -> System.out.println("Previous rebalance Operation is not completed.")
+                                    () -> {
+                                        resultHolder.result = new SimpleResult("Previous rebalance Operation is not completed.");
+                                    }
                             ),
                             () -> performRebalanceOperation.run()
                     );
+
+                    return resultHolder.result;
                 }
 
                 @Override
@@ -194,16 +235,24 @@ public class CacheInteractor {
         console.addCommand("isRebalanceOperationIsRunning", () -> {
             Command command = new Command() {
                 @Override
-                public void execute(String args, Context context) {
-                    notNull(context.getValue("rebalanceOperation",RebalanceOperation.class),
+                public Result execute(String args, Context context) {
+
+                    ResultHolder resultHolder = new ResultHolder();
+
+                    notNull(context.getValue("rebalanceOperation", RebalanceOperation.class),
                             rebalanceOperation -> {
+
                                 try {
                                     System.out.println("Rebalance Operation Status :- " + rebalanceOperation.getResults().toString() + " " + rebalanceOperation.isDone());
+                                    List<String> strings = Arrays.asList(rebalanceOperation.getResults().toString(), "" + rebalanceOperation.isDone());
+                                    Stream<List<String>> s = Arrays.asList(strings).stream();
+                                    resultHolder.result = iteratorableResults(s, "Rebalance Operation Status", "Is Done");
                                 } catch (InterruptedException e) {
-                                    e.printStackTrace();
+                                    throw new RuntimeException(e);
                                 }
                             }
                     );
+                    return resultHolder.result;
                 }
 
                 @Override
@@ -218,6 +267,13 @@ public class CacheInteractor {
         console.start();
     }
 
+    private static IterableResult iteratorableResults(Stream<List<String>> listStream, String... columns) {
+        IterableResult iterableResult = new IterableResult();
+        iterableResult.data(listStream);
+        iterableResult.columns(columns);
+        return iterableResult;
+    }
+
     private RebalanceOperation performRebalanceOperation() {
         Set<String> regions = new HashSet<>();
         regions.add("Person");
@@ -228,19 +284,18 @@ public class CacheInteractor {
         return rebalanceFactory.start();
     }
 
-    private void printDistributedMembers() {
+    private Stream<DistributedMember> getDistributedMembers() {
 
-        cache.getDistributedSystem().
-                getAllOtherMembers().
-                forEach(
+        return cache.getDistributedSystem().
+                getAllOtherMembers().stream();
+                /*forEach(
                         distributedMember ->
                                 System.out.println(distributedMember.getId() + " --- " + distributedMember.getName() + " --- " + cache.isServer())
-                );
+                );*/
     }
 
-    private void showPersonRecord(String firstName) {
-        Person person = region.get(firstName);
-        System.out.println(person);
+    private Person getPersonRecord(String firstName) {
+        return region.get(firstName);
     }
 
     private void insertPersonRecord(String firstName, String lastName) {
@@ -248,10 +303,9 @@ public class CacheInteractor {
         region.put(person.getFirstName(), person);
     }
 
-    private void printCacheServerList() {
-        System.out.println("Cache Servers");
+    private Stream<CacheServer> getCacheServersStream() {
         List<CacheServer> cacheServers = cache.getCacheServers();
-        cacheServers.stream().forEach(System.out::println);
+        return cacheServers.stream();
     }
 
     private void executeTransactions(String start) {
