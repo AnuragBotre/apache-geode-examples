@@ -4,6 +4,7 @@ import com.trendcore.console.commands.Command;
 import com.trendcore.console.commands.Context;
 import com.trendcore.console.commands.Let;
 import com.trendcore.console.commands.Put;
+import com.trendcore.lang.DSLMethods;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -23,6 +24,7 @@ public class Console {
     Exception previousException;
 
     private boolean exit;
+    private TableGenerator tableGenerator = new TableGenerator();
 
     public Console() {
 
@@ -44,15 +46,23 @@ public class Console {
 
             @Override
             public String help() {
-                return "Exit from console";
+                return "exit;";
             }
         });
 
         commandsMap.put("commandsList", () ->
-                (args, context) ->
-                        commandsMap.forEach((s, commandSupplier) ->
-                                System.out.println(s + " " + commandSupplier.get().help())
-                        )
+                (args, context) -> {
+                    List<String> headers = Arrays.asList("Command Name", "Help");
+
+                    List<List<String>> collect = commandsMap.entrySet()
+                                        .stream()
+                                        .map(entry -> Arrays.asList(entry.getKey(), entry.getValue().get().help()))
+                                        .collect(Collectors.toList());
+
+                    System.out.println(tableGenerator.generateTable(headers, collect));
+                }
+
+
         );
 
     }
@@ -71,7 +81,7 @@ public class Console {
 
         boolean isExit = false;
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Type commandsList for available commands");
+        System.out.println("Type commandsList; for available commands. All commands should end with ';'");
         while (!isExit) {
             System.out.print("console>");
 
@@ -100,7 +110,7 @@ public class Console {
 
         Runnable printCommandNotFound = () -> System.out.println("Command not found.");
 
-        ifPresentOrElse(Arrays.stream(query.split(";")).findFirst(),refinedQuery -> {
+        ifPresentOrElse(Arrays.stream(query.split(";")).findFirst(), refinedQuery -> {
             String[] s = refinedQuery.split(" ");
 
             when(s.length >= 1, () -> {
@@ -112,7 +122,7 @@ public class Console {
                         },
                         printCommandNotFound);
             });
-        },printCommandNotFound);
+        }, printCommandNotFound);
 
         return exit;
     }
@@ -129,8 +139,6 @@ public class Console {
             System.out.println("Error occurred while invoking command. Type 'showPreviousException' for showing exception");
         }
     }
-
-
 
 
     public void addCommand(String commandName, Supplier<Command> commandSupplier) {

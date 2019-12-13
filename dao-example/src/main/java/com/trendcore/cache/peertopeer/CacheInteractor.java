@@ -7,14 +7,12 @@ import com.trendcore.console.parsers.ArgumentParser;
 import com.trendcore.core.domain.Person;
 import com.trendcore.core.lang.IdentifierSequence;
 import org.apache.geode.cache.*;
+import org.apache.geode.cache.partition.PartitionRegionHelper;
 import org.apache.geode.cache.server.CacheServer;
-import org.apache.geode.distributed.DistributedMember;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Supplier;
 
 public class CacheInteractor {
 
@@ -52,12 +50,12 @@ public class CacheInteractor {
             Command command = new Command() {
                 @Override
                 public void execute(String args, Context context) {
-                    getCacheServerList();
+                    printCacheServerList();
                 }
 
                 @Override
                 public String help() {
-                    return "List Cache Servers";
+                    return "List Cache Servers. listCacheServers;";
                 }
             };
 
@@ -79,7 +77,7 @@ public class CacheInteractor {
 
                 @Override
                 public String help() {
-                    return "insertPerson firtname=<firtname> lastname=<lastname>";
+                    return "insertPerson firtname=<firtname> lastname=<lastname>;";
                 }
             };
 
@@ -101,7 +99,7 @@ public class CacheInteractor {
 
                 @Override
                 public String help() {
-                    return "getPersonRecord firstname=<firstname>";
+                    return "getPersonRecord firstname=<firstname>;";
                 }
             };
 
@@ -134,13 +132,7 @@ public class CacheInteractor {
             Command command = new Command() {
                 @Override
                 public void execute(String args, Context context) {
-                    cache.getDistributedSystem().
-                            getAllOtherMembers().
-                            forEach(
-                                    distributedMember -> {
-                                        System.out.println(distributedMember.getId() + " --- " + distributedMember.getName() + " --- " + cache.isServer());
-                                    }
-                            );
+                    printDistributedMembers();
                 }
 
                 @Override
@@ -151,8 +143,34 @@ public class CacheInteractor {
             return command;
         });
 
+        console.addCommand("showDataForThisMember" , () -> {
+            Command command = new Command() {
+                @Override
+                public void execute(String args, Context context) {
+                    Region<String, Person> localData = PartitionRegionHelper.getLocalData(region);
+                    localData.values().stream().forEach(System.out::println);
+                }
+
+                @Override
+                public String help() {
+                    return "showDataForThisMember;";
+                }
+            };
+            return command;
+        });
+
 
         console.start();
+    }
+
+    private void printDistributedMembers() {
+
+        cache.getDistributedSystem().
+                getAllOtherMembers().
+                forEach(
+                        distributedMember ->
+                                System.out.println(distributedMember.getId() + " --- " + distributedMember.getName() + " --- " + cache.isServer())
+                );
     }
 
     private void showPersonRecord(String firstName) {
@@ -165,7 +183,7 @@ public class CacheInteractor {
         region.put(person.getFirstName(), person);
     }
 
-    private void getCacheServerList() {
+    private void printCacheServerList() {
         System.out.println("Cache Servers");
         List<CacheServer> cacheServers = cache.getCacheServers();
         cacheServers.stream().forEach(System.out::println);
