@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.trendcore.lang.DSLMethods.*;
+import static com.trendcore.lang.LangDLS.*;
 
 public class Console {
 

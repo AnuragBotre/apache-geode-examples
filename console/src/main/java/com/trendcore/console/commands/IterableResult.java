@@ -1,7 +1,6 @@
 package com.trendcore.console.commands;
 
 import com.trendcore.console.TableGenerator;
-import com.trendcore.lang.DSLMethods;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,7 +9,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.trendcore.lang.DSLMethods.ifPresentOrElse;
+import static com.trendcore.lang.LangDLS.ifPresentOrElse;
 
 public class IterableResult implements Result {
 

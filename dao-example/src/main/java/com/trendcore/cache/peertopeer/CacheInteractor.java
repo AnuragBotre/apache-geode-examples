@@ -15,7 +15,7 @@ import org.apache.geode.distributed.DistributedMember;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static com.trendcore.lang.DSLMethods.*;
+import static com.trendcore.lang.LangDLS.*;
 
 public class CacheInteractor {
 
