@@ -2,7 +2,6 @@ package com.trendcore.cache.peertopeer;
 
 import org.apache.geode.cache.Cache;
 import org.apache.geode.cache.CacheFactory;
-import org.apache.geode.distributed.ConfigurationProperties;
 
 import java.util.Properties;
 
@@ -24,11 +23,10 @@ public class CacheServerTwo {
         properties.setProperty("mcast-port", "0");
         properties.setProperty(NAME, "cacheServer2");
 
-        CacheFactory cacheFactory = new CacheFactory(properties);
+        CacheApplication cacheApplication = new CacheApplication(properties);
+        cacheApplication.init();
 
-        Cache cache = cacheFactory.create();
-
-        CacheInteractor cacheInteractor = new CacheInteractor(cache);
+        CacheInteractor cacheInteractor = new CacheInteractor(cacheApplication);
         cacheInteractor.cacheInteractorWithConsoleApp();
 
     }

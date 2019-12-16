@@ -24,11 +24,10 @@ public class CacheServerOne {
         properties.setProperty("mcast-port", "0");
         properties.setProperty(NAME, "cacheServer1");
 
-        CacheFactory cacheFactory = new CacheFactory(properties);
+        CacheApplication cacheApplication = new CacheApplication(properties);
+        cacheApplication.init();
 
-        Cache cache = cacheFactory.create();
-
-        CacheInteractor cacheInteractor = new CacheInteractor(cache);
+        CacheInteractor cacheInteractor = new CacheInteractor(cacheApplication);
         cacheInteractor.cacheInteractorWithConsoleApp();
     }
 
