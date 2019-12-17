@@ -74,36 +74,39 @@ public class CacheInteractor {
             return command;
         });
 
-        console.addCommand("getPersonRecord", () -> {
+        console.addCommand("get", () -> {
 
             Command command = new Command() {
 
-                String firstname;
+                String region;
+
+                Object key;
 
                 @Override
                 public Result execute(String args, Context context) {
                     ArgumentParser argumentParser = new ArgumentParser();
                     argumentParser.bindArgument(this, args);
-                    Person personRecord = cacheApplication.getPersonRecord(firstname);
+                    Object record = cacheApplication.getRecord(region, key);
 
-                    Stream<List<String>> listStream = Arrays.asList(personRecord)
+                    Stream<List<String>> listStream = Arrays.asList(record)
                             .stream()
-                            .filter(person -> person != null)
-                            .map(person -> Arrays.asList(person.toString()));
+                            .filter(r -> r != null)
+                            .map(r -> Arrays.asList(r.toString()));
 
                     return iteratorableResults(listStream, "Firstname", "Person");
                 }
 
                 @Override
                 public String help() {
-                    return "getPersonRecord firstname=<firstname>;";
+                    return "get region=Person key=<firstname>;" +
+                            "get region=User key:int=<id>";
                 }
             };
 
             return command;
         });
 
-        console.addCommand("executeTransaction", () -> {
+        console.addCommand("executePersonTransactions", () -> {
 
             Command command = new Command() {
 
@@ -119,7 +122,7 @@ public class CacheInteractor {
 
                 @Override
                 public String help() {
-                    return "Execute Transaction on Cache. Ex -> executeTransaction start=100";
+                    return "Execute Transaction on Cache. Ex -> executePersonTransactions start=100";
                 }
             };
 
@@ -238,6 +241,51 @@ public class CacheInteractor {
             return command;
         });
 
+        console.addCommand("updatingUserBatch", () -> {
+
+            Command command = new Command() {
+
+                String start;
+
+                @Override
+                public Result execute(String args, Context context) {
+                    ArgumentParser argumentParser = new ArgumentParser();
+                    argumentParser.bindArgument(this, args);
+                    cacheApplication.updatingUserBatch(start);
+                    return new SimpleResult("Transaction executed successfully. !!!");
+                }
+
+                @Override
+                public String help() {
+                    return "Execute Transaction on Cache. Ex -> executeUserTransaction start=100";
+                }
+            };
+
+            return command;
+        });
+
+        console.addCommand("executeUserTransaction", () -> {
+
+            Command command = new Command() {
+
+                String start;
+
+                @Override
+                public Result execute(String args, Context context) {
+                    ArgumentParser argumentParser = new ArgumentParser();
+                    argumentParser.bindArgument(this, args);
+                    cacheApplication.executeUserTransaction(start);
+                    return new SimpleResult("Transaction executed successfully. !!!");
+                }
+
+                @Override
+                public String help() {
+                    return "Execute Transaction on Cache. Ex -> executeUserTransaction start=100";
+                }
+            };
+
+            return command;
+        });
 
         console.start();
     }

@@ -1,8 +1,11 @@
 package com.trendcore.cache.peertopeer.models;
 
+import com.trendcore.core.domain.Identifiable;
+
+import java.io.Serializable;
 import java.util.Map;
 
-public class User {
+public class User implements Identifiable<Long>, Serializable {
 
     private Long id;
 
@@ -12,9 +15,9 @@ public class User {
 
     private boolean active;
 
-    private boolean firstName;
+    private String firstName;
 
-    private boolean lastName;
+    private String lastName;
 
     private Map<Long,Object> roles;
 
@@ -50,19 +53,19 @@ public class User {
         this.active = active;
     }
 
-    public boolean isFirstName() {
+    public String getFirstName() {
         return firstName;
     }
 
-    public void setFirstName(boolean firstName) {
+    public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
 
-    public boolean isLastName() {
+    public String getLastName() {
         return lastName;
     }
 
-    public void setLastName(boolean lastName) {
+    public void setLastName(String lastName) {
         this.lastName = lastName;
     }
 
