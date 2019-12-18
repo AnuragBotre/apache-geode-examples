@@ -2,8 +2,9 @@ package com.trendcore.cache.peertopeer;
 
 import com.trendcore.cache.peertopeer.models.Role;
 import com.trendcore.cache.peertopeer.models.User;
+import com.trendcore.cache.peertopeer.service.PersonService;
+import com.trendcore.cache.peertopeer.service.PersonServiceImpl;
 import com.trendcore.core.domain.Person;
-import com.trendcore.core.lang.IdentifierSequence;
 import org.apache.geode.cache.*;
 import org.apache.geode.cache.control.RebalanceFactory;
 import org.apache.geode.cache.control.RebalanceOperation;
@@ -16,9 +17,6 @@ import java.util.stream.Stream;
 
 public class CacheApplication {
 
-    public static final String PERSON_REGION = "Person";
-    private Region<String, Person> personRegion;
-
     private final Properties cacheConfiguration;
     private Cache cache;
 
@@ -28,15 +26,20 @@ public class CacheApplication {
     private Region<Long, Role> roleRegion;
     public static final String ROLE_REGION = "Role";
 
+    private PersonService personService;
+
     public CacheApplication(Properties cacheConfiguration) {
         this.cacheConfiguration = cacheConfiguration;
+
     }
 
     public void init(){
         CacheFactory cacheFactory = new CacheFactory(this.cacheConfiguration);
         cache = cacheFactory.create();
 
-        createPersonRegion();
+        personService = new PersonServiceImpl(cache);
+        personService.createPersonRegion();
+
         createUserRegion();
         createRoleRegion();
     }
@@ -51,44 +54,18 @@ public class CacheApplication {
         roleRegion = regionFactory.create(ROLE_REGION);
     }
 
-    private void createPersonRegion() {
-        RegionFactory<String, Person> regionFactory = this.cache.createRegionFactory(RegionShortcut.PARTITION);
-
-        /**
-         * In case of Partition personRegion partition resolver is required for bulk insert in case of transaction.
-         */
-        PartitionResolver resolver = new StandardPartitionResolver();
-
-        PartitionAttributesFactory partitionAttributesFactory = new PartitionAttributesFactory();
-        //partitionAttributesFactory.setRedundantCopies(2);
-        partitionAttributesFactory.setPartitionResolver(resolver);
-        PartitionAttributes partitionAttributes = partitionAttributesFactory.create();
-
-        //regionFactory.setEvictionAttributes(EvictionAttributes.createLRUEntryAttributes(200));
-
-        personRegion = regionFactory.setPartitionAttributes(partitionAttributes).create(PERSON_REGION);
-    }
-
-
     public Stream<CacheServer> getCacheServersStream() {
         List<CacheServer> cacheServers = cache.getCacheServers();
         return cacheServers.stream();
     }
 
     public void insertPersonRecord(String firstName, String lastName) {
-        Person person = createPerson(firstName, lastName);
-        personRegion.put(person.getFirstName(), person);
+        personService.insertPersonRecord(firstName,lastName);
     }
 
-    private Person createPerson(String firstname, String lastname) {
-        Person person = new Person(firstname, lastname);
-        IdentifierSequence.INSTANCE.setSequentialLongId(person);
-        return person;
-    }
 
     public Stream<Person> showPersonDataForCurrentDistributedMember() {
-        Region<String, Person> localData = PartitionRegionHelper.getLocalData(personRegion);
-        return localData.values().stream();
+        return personService.showPersonDataForCurrentDistributedMember();
     }
 
     public RebalanceOperation performRebalanceOperation(String... regionNames) {
@@ -105,24 +82,13 @@ public class CacheApplication {
                 getAllOtherMembers().stream();
     }
 
-    public Object getRecord(String region, Object key) {
-        Region<Object, Object> region1 = cache.getRegion(region);
+    public Object getRecord(String regionName, Object key) {
+        Region<Object, Object> region1 = cache.getRegion(regionName);
         return region1.get(key);
     }
 
     public void executePersonTransactions(String start) {
-
-        Map<String, Person> transactionData = new HashMap();
-        int id = Integer.parseInt(start);
-        for (int i = 0; i < 100; i++) {
-            Person person = createPerson("Agent" + (i + id), "");
-            transactionData.put(person.getFirstName(), person);
-        }
-
-        CacheTransactionManager cacheTransactionManager = cache.getCacheTransactionManager();
-        cacheTransactionManager.begin();
-        personRegion.putAll(transactionData);
-        cacheTransactionManager.commit();
+        personService.executePersonTransactions(start);
     }
 
     public void executeUserTransaction(String start) {
@@ -134,12 +100,17 @@ public class CacheApplication {
             transactionData.put(user.getId(), user);
         }
 
-        transactionData.forEach((userId, user) -> {
+        CacheTransactionManager cacheTransactionManager = cache.getCacheTransactionManager();
+        cacheTransactionManager.setDistributed(true);
+        cacheTransactionManager.begin();
+        userRegion.putAll(transactionData);
+        cacheTransactionManager.commit();
+        /*transactionData.forEach((userId, user) -> {
             CacheTransactionManager cacheTransactionManager = cache.getCacheTransactionManager();
             cacheTransactionManager.begin();
             userRegion.put(userId,user);
             cacheTransactionManager.commit();
-        });
+        });*/
 
     }
 
@@ -147,7 +118,6 @@ public class CacheApplication {
         User user = new User();
         user.setFirstName(username);
         user.setFirstName(firstname);
-        //IdentifierSequence.INSTANCE.setSequentialLongId(user);
         return user;
     }
 
