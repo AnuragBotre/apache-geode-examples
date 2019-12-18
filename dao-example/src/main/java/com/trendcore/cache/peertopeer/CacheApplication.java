@@ -134,7 +134,6 @@ public class CacheApplication {
             transactionData.put(user.getId(), user);
         }
 
-
         transactionData.forEach((userId, user) -> {
             CacheTransactionManager cacheTransactionManager = cache.getCacheTransactionManager();
             cacheTransactionManager.begin();
