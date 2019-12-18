@@ -1,5 +1,6 @@
 package com.trendcore.cache.peertopeer;
 
+import com.trendcore.cache.console.commands.*;
 import com.trendcore.console.Console;
 import com.trendcore.console.commands.*;
 import com.trendcore.console.parsers.ArgumentParser;
@@ -11,6 +12,7 @@ import org.apache.geode.distributed.DistributedMember;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static com.trendcore.console.ConsoleDSL.iterableResults;
 import static com.trendcore.lang.LangDLS.*;
 
 public class CacheInteractor {
@@ -29,148 +31,17 @@ public class CacheInteractor {
 
         Console console = new Console();
 
-        console.addCommand("listCacheServers", () -> {
+        console.addCommand("listCacheServers", () -> new ListCacheServers(cacheApplication));
 
-            Command command = new Command() {
-                @Override
-                public Result execute(String args, Context context) {
-                    Stream<CacheServer> cacheServersStream = cacheApplication.getCacheServersStream();
+        console.addCommand("insertPerson", () -> new InsertPerson(cacheApplication));
 
-                    Stream<List<String>> listStream = cacheServersStream.map(cacheServer ->
-                            Arrays.asList(cacheServer.toString()));
+        console.addCommand("get", () -> new Get(cacheApplication));
 
-                    return iteratorableResults(listStream, "CacheServer");
-                }
+        console.addCommand("executePersonTransactions", () -> new ExecutePersonTransactions(cacheApplication));
 
-                @Override
-                public String help() {
-                    return "List Cache Servers. listCacheServers;";
-                }
-            };
+        console.addCommand("showDistributedMembers", () -> new ShowDistributedMembersCommand(cacheApplication));
 
-            return command;
-        });
-
-        console.addCommand("insertPerson", () -> {
-
-            Command command = new Command() {
-
-                String firtname, lastname;
-
-                @Override
-                public Result execute(String args, Context context) {
-                    ArgumentParser argumentParser = new ArgumentParser();
-                    argumentParser.bindArgument(this, args);
-                    cacheApplication.insertPersonRecord(firtname, lastname);
-                    return new SimpleResult("Record inserted successfully.");
-                }
-
-                @Override
-                public String help() {
-                    return "insertPerson firtname=<firtname> lastname=<lastname>;";
-                }
-            };
-
-            return command;
-        });
-
-        console.addCommand("get", () -> {
-
-            Command command = new Command() {
-
-                String region;
-
-                Object key;
-
-                @Override
-                public Result execute(String args, Context context) {
-                    ArgumentParser argumentParser = new ArgumentParser();
-                    argumentParser.bindArgument(this, args);
-                    Object record = cacheApplication.getRecord(region, key);
-
-                    Stream<List<String>> listStream = Arrays.asList(record)
-                            .stream()
-                            .filter(r -> r != null)
-                            .map(r -> Arrays.asList(r.toString()));
-
-                    return iteratorableResults(listStream, "Firstname", "Person");
-                }
-
-                @Override
-                public String help() {
-                    return "get region=Person key=<firstname>;" +
-                            "get region=User key:int=<id>";
-                }
-            };
-
-            return command;
-        });
-
-        console.addCommand("executePersonTransactions", () -> {
-
-            Command command = new Command() {
-
-                String start;
-
-                @Override
-                public Result execute(String args, Context context) {
-                    ArgumentParser argumentParser = new ArgumentParser();
-                    argumentParser.bindArgument(this, args);
-                    cacheApplication.executePersonTransactions(start);
-                    return new SimpleResult("Transaction executed successfully. !!!");
-                }
-
-                @Override
-                public String help() {
-                    return "Execute Transaction on Cache. Ex -> executePersonTransactions start=100";
-                }
-            };
-
-            return command;
-        });
-
-        console.addCommand("showDistributedMembers", () -> {
-            Command command = new Command() {
-                @Override
-                public Result execute(String args, Context context) {
-                    Stream<DistributedMember> distributedMembers = cacheApplication.getDistributedMembers();
-
-                    return iteratorableResults(
-                            distributedMembers.map(distributedMember ->
-                                    Arrays.asList(distributedMember.getId(), distributedMember.getName())),
-                            "Id", "Name");
-                }
-
-                @Override
-                public String help() {
-                    return "showDistributedMembers;";
-                }
-            };
-            return command;
-        });
-
-        console.addCommand("showPersonDataForThisMember", () -> {
-            Command command = new Command() {
-                @Override
-                public Result execute(String args, Context context) {
-
-                    Stream<Person> currentMembersPersonData = cacheApplication.showPersonDataForCurrentDistributedMember();
-
-                    return iteratorableResults(currentMembersPersonData
-                                    .map(p ->
-                                            Arrays.asList(p.getFirstName(),
-                                                    p.getLastName(),
-                                                    p.toString()))
-                            , "Firstname", "Lastname", "Object As String");
-                }
-
-                @Override
-                public String help() {
-                    return "showPersonDataForThisMember;";
-                }
-            };
-            return command;
-        });
+        console.addCommand("showPersonDataForThisMember", () -> new ShowPersonDataForThisMember(cacheApplication));
 
         console.addCommand("rebalancePersonRegion", () -> {
             Command command = new Command() {
@@ -224,7 +95,7 @@ public class CacheInteractor {
                                     System.out.println("Rebalance Operation Status :- " + rebalanceOperation.getResults().toString() + " " + rebalanceOperation.isDone());
                                     List<String> strings = Arrays.asList(rebalanceOperation.getResults().toString(), "" + rebalanceOperation.isDone());
                                     Stream<List<String>> s = Arrays.asList(strings).stream();
-                                    resultHolder.result = iteratorableResults(s, "Rebalance Operation Status", "Is Done");
+                                    resultHolder.result = iterableResults(s, "Rebalance Operation Status", "Is Done");
                                 } catch (InterruptedException e) {
                                     throw new RuntimeException(e);
                                 }
@@ -290,10 +161,5 @@ public class CacheInteractor {
         console.start();
     }
 
-    private static IterableResult iteratorableResults(Stream<List<String>> listStream, String... columns) {
-        IterableResult iterableResult = new IterableResult();
-        iterableResult.data(listStream);
-        iterableResult.columns(columns);
-        return iterableResult;
-    }
+
 }
