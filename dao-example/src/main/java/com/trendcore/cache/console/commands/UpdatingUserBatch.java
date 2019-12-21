@@ -27,7 +27,7 @@ public class UpdatingUserBatch implements Command {
 
     @Override
     public String help() {
-        return "Execute Transaction on Cache. Ex -> executeUserTransaction start=100";
+        return "Execute Transaction on Cache. Ex -> updatingUserBatch start=100";
     }
 
 }
