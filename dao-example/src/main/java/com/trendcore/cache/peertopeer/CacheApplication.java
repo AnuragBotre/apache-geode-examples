@@ -105,18 +105,11 @@ public class CacheApplication {
         cacheTransactionManager.begin();
         userRegion.putAll(transactionData);
         cacheTransactionManager.commit();
-        /*transactionData.forEach((userId, user) -> {
-            CacheTransactionManager cacheTransactionManager = cache.getCacheTransactionManager();
-            cacheTransactionManager.begin();
-            userRegion.put(userId,user);
-            cacheTransactionManager.commit();
-        });*/
-
     }
 
     private User createUser(String username, String firstname) {
         User user = new User();
-        user.setFirstName(username);
+        user.setUsername(username);
         user.setFirstName(firstname);
         return user;
     }
@@ -124,20 +117,22 @@ public class CacheApplication {
     public void updatingUserBatch(String start) {
         Map<Long, User> transactionData = new HashMap();
         int id = Integer.parseInt(start);
-        for (int i = 0; i < 10 ; i++) {
+        for (int i = 0; i < 60 ; i++) {
             User user = createUser("Agent" + (i + id), "");
             user.setId((long) (i+id));
-            user.setFirstName("Updated" + (i+id));
+            user.setUsername("Updated" + (i+id));
             transactionData.put(user.getId(), user);
         }
 
         CacheTransactionManager cacheTransactionManager = cache.getCacheTransactionManager();
+        cacheTransactionManager.setDistributed(true);
         cacheTransactionManager.begin();
-        transactionData.forEach((key, user) -> {
-            User user1 = userRegion.get(key);
-            DistributedMember primaryMemberForKey = PartitionRegionHelper.getPrimaryMemberForKey(userRegion, key);
-
-        });
+        userRegion.putAll(transactionData);
         cacheTransactionManager.commit();
+    }
+
+    public Stream<User> showUserDataForCurrentDistributedMember() {
+        Region<Long, User> localData = PartitionRegionHelper.getLocalData(userRegion);
+        return localData.values().stream();
     }
 }

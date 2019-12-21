@@ -76,4 +76,14 @@ public class User implements Identifiable<Long>, Serializable {
     public void setRoles(Map<Long, Object> roles) {
         this.roles = roles;
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                '}';
+    }
 }
