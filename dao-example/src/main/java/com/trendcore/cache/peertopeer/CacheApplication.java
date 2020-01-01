@@ -4,11 +4,12 @@ import com.trendcore.cache.peertopeer.models.Role;
 import com.trendcore.cache.peertopeer.models.User;
 import com.trendcore.cache.peertopeer.service.PersonService;
 import com.trendcore.cache.peertopeer.service.PersonServiceImpl;
+import com.trendcore.cache.peertopeer.service.UserService;
+import com.trendcore.cache.peertopeer.service.UserServiceImpl;
 import com.trendcore.core.domain.Person;
 import org.apache.geode.cache.*;
 import org.apache.geode.cache.control.RebalanceFactory;
 import org.apache.geode.cache.control.RebalanceOperation;
-import org.apache.geode.cache.partition.PartitionRegionHelper;
 import org.apache.geode.cache.server.CacheServer;
 import org.apache.geode.distributed.DistributedMember;
 
@@ -20,13 +21,13 @@ public class CacheApplication {
     private final Properties cacheConfiguration;
     private Cache cache;
 
-    private Region<Long, User> userRegion;
-    public static final String USER_REGION = "User";
 
     private Region<Long, Role> roleRegion;
     public static final String ROLE_REGION = "Role";
 
     private PersonService personService;
+
+    private UserService userService;
 
     public CacheApplication(Properties cacheConfiguration) {
         this.cacheConfiguration = cacheConfiguration;
@@ -40,13 +41,10 @@ public class CacheApplication {
         personService = new PersonServiceImpl(cache);
         personService.createPersonRegion();
 
-        createUserRegion();
-        createRoleRegion();
-    }
+        userService = new UserServiceImpl(cache);
+        userService.createUserRegion();
 
-    private void createUserRegion() {
-        RegionFactory<Long, User> regionFactory = this.cache.createRegionFactory(RegionShortcut.PARTITION);
-        userRegion = regionFactory.create(USER_REGION);
+        createRoleRegion();
     }
 
     private void createRoleRegion() {
@@ -69,7 +67,7 @@ public class CacheApplication {
     }
 
     public RebalanceOperation performRebalanceOperation(String... regionNames) {
-        Set<String> regions = new HashSet<>(Arrays.asList());
+        Set<String> regions = new HashSet<>(Arrays.asList(regionNames));
         RebalanceFactory rebalanceFactory = cache.getResourceManager()
                 .createRebalanceFactory()
                 .includeRegions(regions);
@@ -92,47 +90,14 @@ public class CacheApplication {
     }
 
     public void executeUserTransaction(String start) {
-        Map<Long, User> transactionData = new HashMap();
-        int id = Integer.parseInt(start);
-        for (int i = 0; i < 100; i++) {
-            User user = createUser("Agent" + (i + id), "");
-            user.setId((long) (i+id));
-            transactionData.put(user.getId(), user);
-        }
-
-        CacheTransactionManager cacheTransactionManager = cache.getCacheTransactionManager();
-        cacheTransactionManager.setDistributed(true);
-        cacheTransactionManager.begin();
-        userRegion.putAll(transactionData);
-        cacheTransactionManager.commit();
-    }
-
-    private User createUser(String username, String firstname) {
-        User user = new User();
-        user.setUsername(username);
-        user.setFirstName(firstname);
-        return user;
+        userService.executeUserTransaction(start);
     }
 
     public void updatingUserBatch(String start) {
-        Map<Long, User> transactionData = new HashMap();
-        int id = Integer.parseInt(start);
-        for (int i = 0; i < 60 ; i++) {
-            User user = createUser("Agent" + (i + id), "");
-            user.setId((long) (i+id));
-            user.setUsername("Updated" + (i+id));
-            transactionData.put(user.getId(), user);
-        }
-
-        CacheTransactionManager cacheTransactionManager = cache.getCacheTransactionManager();
-        cacheTransactionManager.setDistributed(true);
-        cacheTransactionManager.begin();
-        userRegion.putAll(transactionData);
-        cacheTransactionManager.commit();
+        userService.updatingUserBatch(start);
     }
 
     public Stream<User> showUserDataForCurrentDistributedMember() {
-        Region<Long, User> localData = PartitionRegionHelper.getLocalData(userRegion);
-        return localData.values().stream();
+        return userService.showUserDataForCurrentDistributedMember();
     }
 }
