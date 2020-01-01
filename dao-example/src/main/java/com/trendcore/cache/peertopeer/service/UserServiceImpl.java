@@ -74,4 +74,15 @@ public class UserServiceImpl implements UserService {
         return localData.values().stream();
     }
 
+    @Override
+    public void insertUser(User user) {
+        CacheTransactionManager cacheTransactionManager = cache.getCacheTransactionManager();
+        try {
+            cacheTransactionManager.begin();
+            userRegion.put(user.getId(), user);
+            cacheTransactionManager.commit();
+        } catch (Exception e) {
+            cacheTransactionManager.rollback();
+        }
+    }
 }

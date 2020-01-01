@@ -2,11 +2,6 @@ package com.trendcore.cache.peertopeer;
 
 import com.trendcore.cache.console.commands.*;
 import com.trendcore.console.Console;
-import com.trendcore.console.commands.Command;
-import com.trendcore.console.commands.Context;
-import com.trendcore.console.commands.Result;
-import com.trendcore.console.commands.SimpleResult;
-import com.trendcore.console.parsers.ArgumentParser;
 
 public class CacheInteractor {
 
@@ -43,6 +38,10 @@ public class CacheInteractor {
         console.addCommand("executeUserTransaction", () -> new ExecuteUserTransaction(cacheApplication));
 
         console.addCommand("showUserDataForThisMember", () -> new ShowUserDataForThisMember(cacheApplication));
+
+        console.addCommand("insertUser", () -> new InsertUser(cacheApplication));
+
+        console.addCommand("insertRole", () -> new InsertRole(cacheApplication));
 
         console.start();
     }

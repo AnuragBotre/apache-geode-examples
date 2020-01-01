@@ -2,11 +2,9 @@ package com.trendcore.cache.peertopeer;
 
 import com.trendcore.cache.peertopeer.models.Role;
 import com.trendcore.cache.peertopeer.models.User;
-import com.trendcore.cache.peertopeer.service.PersonService;
-import com.trendcore.cache.peertopeer.service.PersonServiceImpl;
-import com.trendcore.cache.peertopeer.service.UserService;
-import com.trendcore.cache.peertopeer.service.UserServiceImpl;
+import com.trendcore.cache.peertopeer.service.*;
 import com.trendcore.core.domain.Person;
+import com.trendcore.core.lang.IdentifierSequence;
 import org.apache.geode.cache.*;
 import org.apache.geode.cache.control.RebalanceFactory;
 import org.apache.geode.cache.control.RebalanceOperation;
@@ -22,19 +20,19 @@ public class CacheApplication {
     private Cache cache;
 
 
-    private Region<Long, Role> roleRegion;
-    public static final String ROLE_REGION = "Role";
 
     private PersonService personService;
 
     private UserService userService;
+
+    private RoleService roleService;
 
     public CacheApplication(Properties cacheConfiguration) {
         this.cacheConfiguration = cacheConfiguration;
 
     }
 
-    public void init(){
+    public void init() {
         CacheFactory cacheFactory = new CacheFactory(this.cacheConfiguration);
         cache = cacheFactory.create();
 
@@ -44,12 +42,14 @@ public class CacheApplication {
         userService = new UserServiceImpl(cache);
         userService.createUserRegion();
 
+        roleService = new RoleServiceImpl(cache);
+        roleService.createRoleRegion();
+
         createRoleRegion();
     }
 
     private void createRoleRegion() {
-        RegionFactory<Long, Role> regionFactory = this.cache.createRegionFactory(RegionShortcut.PARTITION);
-        roleRegion = regionFactory.create(ROLE_REGION);
+
     }
 
     public Stream<CacheServer> getCacheServersStream() {
@@ -58,7 +58,7 @@ public class CacheApplication {
     }
 
     public void insertPersonRecord(String firstName, String lastName) {
-        personService.insertPersonRecord(firstName,lastName);
+        personService.insertPersonRecord(firstName, lastName);
     }
 
 
@@ -73,6 +73,15 @@ public class CacheApplication {
                 .includeRegions(regions);
 
         return rebalanceFactory.start();
+    }
+
+    public void insertUser(String userName, String firstName, String lastName) {
+        User user = new User();
+        IdentifierSequence.INSTANCE.setSequentialLongId(user);
+        user.setUsername(userName);
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        userService.insertUser(user);
     }
 
     public Stream<DistributedMember> getDistributedMembers() {
@@ -99,5 +108,12 @@ public class CacheApplication {
 
     public Stream<User> showUserDataForCurrentDistributedMember() {
         return userService.showUserDataForCurrentDistributedMember();
+    }
+
+    public void insertRole(String roleName) {
+        Role role = new Role();
+        IdentifierSequence.INSTANCE.setSequentialLongId(role);
+        role.setRoleName(roleName);
+        roleService.insertRole(role);
     }
 }

@@ -1,8 +1,10 @@
 package com.trendcore.cache.peertopeer.models;
 
+import com.trendcore.core.domain.Identifiable;
+
 import java.util.Map;
 
-public class Role {
+public class Role implements Identifiable<Long> {
 
     private Long id;
 

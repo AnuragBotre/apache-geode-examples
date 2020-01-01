@@ -14,4 +14,6 @@ public interface UserService {
     void updatingUserBatch(String start);
 
     Stream<User> showUserDataForCurrentDistributedMember();
+
+    void insertUser(User user);
 }
