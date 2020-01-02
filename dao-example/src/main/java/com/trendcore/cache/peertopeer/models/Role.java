@@ -2,9 +2,10 @@ package com.trendcore.cache.peertopeer.models;
 
 import com.trendcore.core.domain.Identifiable;
 
+import java.io.Serializable;
 import java.util.Map;
 
-public class Role implements Identifiable<Long> {
+public class Role implements Identifiable<Long> , Serializable {
 
     private Long id;
 
@@ -44,5 +45,14 @@ public class Role implements Identifiable<Long> {
 
     public void setUsers(Map<Long, Object> users) {
         this.users = users;
+    }
+
+    @Override
+    public String toString() {
+        return "Role{" +
+                "id=" + id +
+                ", roleName='" + roleName + '\'' +
+                ", roleDesc='" + roleDesc + '\'' +
+                '}';
     }
 }

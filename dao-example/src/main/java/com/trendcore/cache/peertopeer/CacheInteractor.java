@@ -43,6 +43,12 @@ public class CacheInteractor {
 
         console.addCommand("insertRole", () -> new InsertRole(cacheApplication));
 
+        console.addCommand("showRoleDataForThisMember", () -> new ShowRoleDataForThisMember(cacheApplication));
+
+        console.addCommand("attachRoleToUser", () -> new AttachRoleToUser(cacheApplication));
+
+        console.addCommand("attachUserToRole", () -> new ShowRoleDataForThisMember(cacheApplication));
+
         console.start();
     }
 

@@ -7,13 +7,15 @@ import com.trendcore.console.commands.Result;
 import com.trendcore.console.commands.SimpleResult;
 import com.trendcore.console.parsers.ArgumentParser;
 
-public class InsertRole implements Command {
+public class AttachRoleToUser implements Command {
 
-    private CacheApplication cacheApplication;
+    private final CacheApplication cacheApplication;
 
-    private String roleName;
+    private String userId;
 
-    public InsertRole(CacheApplication cacheApplication) {
+    private String roleId;
+
+    public AttachRoleToUser(CacheApplication cacheApplication) {
         this.cacheApplication = cacheApplication;
     }
 
@@ -21,12 +23,12 @@ public class InsertRole implements Command {
     public Result execute(String args, Context context) {
         ArgumentParser argumentParser = new ArgumentParser();
         argumentParser.bindArgument(this, args);
-        cacheApplication.insertRole(roleName);
-        return new SimpleResult("Role inserted successfully.");
+        this.cacheApplication.attachRoleToUser(Long.parseLong(userId),Long.parseLong(roleId));
+        return new SimpleResult("Role Attached successfully.");
     }
 
     @Override
     public String help() {
-        return "insertRole <roleName>;";
+        return "attachRoleToUser userId=<userId> roleId=<roleId>";
     }
 }

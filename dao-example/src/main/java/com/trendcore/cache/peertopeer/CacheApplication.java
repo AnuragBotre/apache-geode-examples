@@ -19,7 +19,7 @@ public class CacheApplication {
     private final Properties cacheConfiguration;
     private Cache cache;
 
-
+    public static Object EMPTY_OBJECT = new Object();
 
     private PersonService personService;
 
@@ -115,5 +115,13 @@ public class CacheApplication {
         IdentifierSequence.INSTANCE.setSequentialLongId(role);
         role.setRoleName(roleName);
         roleService.insertRole(role);
+    }
+
+    public Stream<Role> showRoleDataForCurrentDistributedMember() {
+        return roleService.showRoleDataForCurrentDistributedMember();
+    }
+
+    public void attachRoleToUser(Long userId, Long roleId) {
+        this.userService.attachRoleToUser(userId,roleId);
     }
 }

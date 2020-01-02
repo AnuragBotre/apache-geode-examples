@@ -3,7 +3,10 @@ package com.trendcore.cache.peertopeer.models;
 import com.trendcore.core.domain.Identifiable;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
+
+import static com.trendcore.cache.peertopeer.CacheApplication.EMPTY_OBJECT;
 
 public class User implements Identifiable<Long>, Serializable {
 
@@ -20,6 +23,10 @@ public class User implements Identifiable<Long>, Serializable {
     private String lastName;
 
     private Map<Long,Object> roles;
+
+    public User() {
+        roles = new HashMap<>();
+    }
 
     public Long getId() {
         return id;
@@ -85,5 +92,9 @@ public class User implements Identifiable<Long>, Serializable {
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 '}';
+    }
+
+    public void addRole(Long roleId) {
+        roles.put(roleId,null);
     }
 }
