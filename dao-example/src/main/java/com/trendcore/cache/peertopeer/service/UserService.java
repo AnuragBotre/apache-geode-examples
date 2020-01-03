@@ -18,4 +18,6 @@ public interface UserService {
     void insertUser(User user);
 
     void attachRoleToUser(Long userId, Long roleId);
+
+    Stream<User> getAllUsers();
 }

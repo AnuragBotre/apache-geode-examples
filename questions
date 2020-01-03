@@ -1,0 +1,7 @@
+org.apache.geode.cache.UnsupportedOperationInTransactionException: Expected size of 1 {[/__PR/_B__User_101]} for target=192.168.1.2(cacheServer2:7756)<v1>:41001 during a distributed transaction but got 2 {[[], [DistTxThinEntryState:  ,regionVersion=2 ,tailKey=440 ,memberID=null]]}
+	at org.apache.geode.internal.cache.DistTXStateProxyImplOnCoordinator.populateEntryEventMap(DistTXStateProxyImplOnCoordinator.java:576)
+	at org.apache.geode.internal.cache.DistTXStateProxyImplOnCoordinator.doPrecommit(DistTXStateProxyImplOnCoordinator.java:484)
+	at org.apache.geode.internal.cache.DistTXStateProxyImplOnCoordinator.commit(DistTXStateProxyImplOnCoordinator.java:88)
+	at org.apache.geode.internal.cache.TXManagerImpl.commit(TXManagerImpl.java:426)
+	at com.trendcore.cache.peertopeer.service.UserServiceImpl.attachRoleToUser(UserServiceImpl.java:108)
+	at com.trendcore.cache.peertopeer.CacheApplication.attachRoleToUser(CacheApplication.java:121)

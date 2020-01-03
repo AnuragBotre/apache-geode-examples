@@ -1,8 +1,5 @@
 package com.trendcore.cache.peertopeer;
 
-import org.apache.geode.cache.Cache;
-import org.apache.geode.cache.CacheFactory;
-
 import java.util.Properties;
 
 import static org.apache.geode.distributed.ConfigurationProperties.NAME;
@@ -11,6 +8,13 @@ public class CacheServerOne {
 
     public static void main(String[] args) {
 
+        CacheApplication cacheApplication = getCacheApplication();
+
+        CacheInteractor cacheInteractor = new CacheInteractor(cacheApplication);
+        cacheInteractor.cacheInteractorWithConsoleApp();
+    }
+
+    public static CacheApplication getCacheApplication() {
         String file = CacheServerOne.class.getClassLoader().getResource("log4j2-cache1.xml").getFile();
 
         System.out.println(file);
@@ -26,9 +30,7 @@ public class CacheServerOne {
 
         CacheApplication cacheApplication = new CacheApplication(properties);
         cacheApplication.init();
-
-        CacheInteractor cacheInteractor = new CacheInteractor(cacheApplication);
-        cacheInteractor.cacheInteractorWithConsoleApp();
+        return cacheApplication;
     }
 
 }

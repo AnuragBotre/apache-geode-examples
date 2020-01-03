@@ -7,10 +7,12 @@ import org.apache.geode.cache.partition.PartitionRegionHelper;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public class UserServiceImpl implements UserService {
 
+    public static final String ROLE_REGION_NAME = "Role";
     private Cache cache;
 
     private Region<Long, User> userRegion;
@@ -89,12 +91,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void attachRoleToUser(Long userId, Long roleId) {
+        Region<Long, User> userRegion = cache.getRegion(USER_REGION);
+        Region<Long, Role> roleRegion = cache.getRegion("Role");
         CacheTransactionManager cacheTransactionManager = cache.getCacheTransactionManager();
         try {
             cacheTransactionManager.setDistributed(true);
             cacheTransactionManager.begin();
-            Region<Long, User> userRegion = cache.getRegion(USER_REGION);
-            Region<Long, Role> roleRegion = cache.getRegion("Role");
 
             Role role = roleRegion.get(roleId);
 
@@ -112,5 +114,30 @@ public class UserServiceImpl implements UserService {
             }
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public Stream<User> getAllUsers() {
+
+        Region<Long, Role> regionRole = cache.getRegion(ROLE_REGION_NAME);
+
+        Stream<User> userStream = userRegion.values().stream().map(user -> {
+            Optional
+                    .ofNullable(user.getRoles())
+                    .map(longObjectMap -> {
+                        longObjectMap
+                                .entrySet()
+                                .stream()
+                                .forEach(longObjectEntry ->
+                                        longObjectEntry.setValue(
+                                            regionRole.get(longObjectEntry.getKey())
+                                        )
+                                );
+
+                        return longObjectMap;
+                    }).orElse(null);
+            return user;
+        });
+        return userStream;
     }
 }

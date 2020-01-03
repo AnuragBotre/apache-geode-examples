@@ -44,12 +44,6 @@ public class CacheApplication {
 
         roleService = new RoleServiceImpl(cache);
         roleService.createRoleRegion();
-
-        createRoleRegion();
-    }
-
-    private void createRoleRegion() {
-
     }
 
     public Stream<CacheServer> getCacheServersStream() {
@@ -75,13 +69,14 @@ public class CacheApplication {
         return rebalanceFactory.start();
     }
 
-    public void insertUser(String userName, String firstName, String lastName) {
+    public User insertUser(String userName, String firstName, String lastName) {
         User user = new User();
         IdentifierSequence.INSTANCE.setSequentialLongId(user);
         user.setUsername(userName);
         user.setFirstName(firstName);
         user.setLastName(lastName);
         userService.insertUser(user);
+        return user;
     }
 
     public Stream<DistributedMember> getDistributedMembers() {
@@ -110,11 +105,12 @@ public class CacheApplication {
         return userService.showUserDataForCurrentDistributedMember();
     }
 
-    public void insertRole(String roleName) {
+    public Role insertRole(String roleName) {
         Role role = new Role();
         IdentifierSequence.INSTANCE.setSequentialLongId(role);
         role.setRoleName(roleName);
         roleService.insertRole(role);
+        return role;
     }
 
     public Stream<Role> showRoleDataForCurrentDistributedMember() {
@@ -123,5 +119,9 @@ public class CacheApplication {
 
     public void attachRoleToUser(Long userId, Long roleId) {
         this.userService.attachRoleToUser(userId,roleId);
+    }
+
+    public Stream<User> getAllUsers() {
+        return this.userService.getAllUsers();
     }
 }
