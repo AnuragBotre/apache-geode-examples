@@ -22,7 +22,7 @@ public class ShowUsersWithRolesTest {
     }
 
     @Test
-    public void name() {
+    public void attachRole() {
 
         User user = cacheApplication.insertUser("anurag", "anurag", "b");
         Role role = cacheApplication.insertRole("Admin");
