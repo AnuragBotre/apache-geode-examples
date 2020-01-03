@@ -5,3 +5,14 @@ org.apache.geode.cache.UnsupportedOperationInTransactionException: Expected size
 	at org.apache.geode.internal.cache.TXManagerImpl.commit(TXManagerImpl.java:426)
 	at com.trendcore.cache.peertopeer.service.UserServiceImpl.attachRoleToUser(UserServiceImpl.java:108)
 	at com.trendcore.cache.peertopeer.CacheApplication.attachRoleToUser(CacheApplication.java:121)
+
+    public void insertUser(User user) {
+        CacheTransactionManager cacheTransactionManager = cache.getCacheTransactionManager();
+        try {
+            cacheTransactionManager.begin();
+            userRegion.put(user.getId(), user);
+            cacheTransactionManager.commit();
+        } catch (Exception e) {
+            cacheTransactionManager.rollback();
+        }
+    }

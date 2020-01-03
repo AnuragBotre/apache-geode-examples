@@ -2,6 +2,7 @@ package com.trendcore.cache.peertopeer.service;
 
 import com.trendcore.cache.peertopeer.models.Role;
 import com.trendcore.cache.peertopeer.models.User;
+import com.trendcore.core.util.Util;
 import org.apache.geode.cache.*;
 import org.apache.geode.cache.partition.PartitionRegionHelper;
 
@@ -95,10 +96,14 @@ public class UserServiceImpl implements UserService {
         Region<Long, Role> roleRegion = cache.getRegion("Role");
         CacheTransactionManager cacheTransactionManager = cache.getCacheTransactionManager();
         try {
+            Role role = roleRegion.get(roleId);
+
             cacheTransactionManager.setDistributed(true);
             cacheTransactionManager.begin();
 
-            Role role = roleRegion.get(roleId);
+            //This line is causing below exception
+            //org.apache.geode.cache.UnsupportedOperationInTransactionException: Expected size of 1 {[/__PR/_B__User_101]}
+            //Role role = roleRegion.get(roleId);
 
             if (role != null) {
                 User user = userRegion.get(userId);
@@ -108,7 +113,8 @@ public class UserServiceImpl implements UserService {
             cacheTransactionManager.commit();
         } catch (Exception e) {
             try {
-                cacheTransactionManager.rollback();
+                if(cacheTransactionManager != null && cacheTransactionManager.exists())
+                    cacheTransactionManager.rollback();
             }catch (Exception rbe){
 
             }
