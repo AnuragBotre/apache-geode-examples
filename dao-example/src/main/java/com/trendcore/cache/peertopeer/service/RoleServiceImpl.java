@@ -30,6 +30,7 @@ public class RoleServiceImpl implements RoleService {
     public void insertRole(Role role) {
         CacheTransactionManager cacheTransactionManager = cache.getCacheTransactionManager();
         try {
+            cacheTransactionManager.setDistributed(true);
             cacheTransactionManager.begin();
             roleRegion.put(role.getId(), role);
             cacheTransactionManager.commit();

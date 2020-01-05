@@ -3,6 +3,7 @@ package com.trendcore.cache.peertopeer.service;
 import com.trendcore.cache.peertopeer.models.Role;
 import com.trendcore.cache.peertopeer.models.User;
 import com.trendcore.core.util.Util;
+import org.apache.geode.CopyHelper;
 import org.apache.geode.cache.*;
 import org.apache.geode.cache.partition.PartitionRegionHelper;
 
@@ -96,26 +97,31 @@ public class UserServiceImpl implements UserService {
         Region<Long, Role> roleRegion = cache.getRegion("Role");
         CacheTransactionManager cacheTransactionManager = cache.getCacheTransactionManager();
         try {
-            Role role = roleRegion.get(roleId);
+            //Role role = roleRegion.get(roleId);
 
             cacheTransactionManager.setDistributed(true);
             cacheTransactionManager.begin();
 
             //This line is causing below exception
             //org.apache.geode.cache.UnsupportedOperationInTransactionException: Expected size of 1 {[/__PR/_B__User_101]}
-            //Role role = roleRegion.get(roleId);
+            Role roleFromCache = roleRegion.get(roleId);
+            Role role = CopyHelper.deepCopy(roleFromCache);
 
             if (role != null) {
                 User user = userRegion.get(userId);
                 user.addRole(role.getId());
-                userRegion.put(userId,user);
+                userRegion.put(userId, user);
+
+                //Once the region is retrived from the cache then it has to put back.
+                //then you wont get UnsupportedOperationInTransactionException.
+                roleRegion.put(roleId,roleFromCache);
             }
             cacheTransactionManager.commit();
         } catch (Exception e) {
             try {
-                if(cacheTransactionManager != null && cacheTransactionManager.exists())
+                if (cacheTransactionManager != null && cacheTransactionManager.exists())
                     cacheTransactionManager.rollback();
-            }catch (Exception rbe){
+            } catch (Exception rbe) {
 
             }
             throw new RuntimeException(e);
@@ -136,7 +142,7 @@ public class UserServiceImpl implements UserService {
                                 .stream()
                                 .forEach(longObjectEntry ->
                                         longObjectEntry.setValue(
-                                            regionRole.get(longObjectEntry.getKey())
+                                                regionRole.get(longObjectEntry.getKey())
                                         )
                                 );
 
